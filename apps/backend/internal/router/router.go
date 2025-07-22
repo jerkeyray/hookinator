@@ -1,23 +1,27 @@
 package router
 
 import (
-	"net/http"
-	"github.com/go-chi/chi/v5"
+    "net/http"
+    "github.com/go-chi/chi/v5"
+    "github.com/go-chi/chi/v5/middleware"
 
-	"github.com/jerkeyray/hookinator/handlers"
+    "hookinator/internal/handlers"
 )
 
 func New() http.Handler {
-	r := chi.NewRouter()
+    r := chi.NewRouter()
 
-	r.Use(middleware.logger)
-	r.Use(middlare.Recoverer)
+    r.Use(middleware.Logger)
+    r.Use(middleware.Recoverer)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.ResponseController)) {
-		w.Write([]byte("webhook server is running"))
-	}
+    r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("webhook server is running"))
+    })
 
-	r.Post("/webhook/{id}", handlers.HandleWebhook)
+    r.Post("/webhook/{id}", handlers.HandleWebhook)
+		r.Get("/inspect/{id}", handlers.InspectWebhook)
+		r.Post("/create", handlers.CreateWebhook)
 
-	return r
+
+    return r
 }

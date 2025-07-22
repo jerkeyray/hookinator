@@ -1,4 +1,4 @@
-module github.com/jerkeyray/hookinator
+module hookinator
 
 go 1.24.1
 

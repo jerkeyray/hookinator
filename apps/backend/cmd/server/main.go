@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jerkeyray/hookinator/router"
+	"hookinator/internal/router"
 	"github.com/joho/godotenv"
 )
 
