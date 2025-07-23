@@ -1,13 +1,15 @@
 package handlers
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"hookinator/internal/store"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func HandleWebhook(w http.ResponseWriter, r *http.Request) {
@@ -21,6 +23,7 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		headers[k] = v[0]
 	}
 
+	// Save for inspection
 	store.Save(id, store.WebhookRequest{
 		Timestamp: time.Now(),
 		Method:    r.Method,
@@ -28,5 +31,17 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		Body:      string(bodyBytes),
 	})
 
-	fmt.Fprintf(w, "Received webhook for ID: %s\n", id)
+	// Forward if forwarding URL exists
+	forwardURL := store.GetForwardURL(id)
+	if forwardURL != "" {
+		go func() {
+			req, _ := http.NewRequest(r.Method, forwardURL, bytes.NewReader(bodyBytes))
+			for k, v := range headers {
+				req.Header.Set(k, v)
+			}
+			client := &http.Client{Timeout: 5 * time.Second}
+			client.Do(req)
+		}()
+	}
+	fmt.Fprintf(w, "Webhook received and processed")
 }
