@@ -1,4 +1,3 @@
-// handlers/create.go
 package handlers
 
 import (
@@ -7,14 +6,13 @@ import (
 	"net/http"
 
 	"hookinator/internal/utils"
-	"hookinator/internal/store"
 )
 
 type CreateRequest struct {
 	ForwardURL string `json:"forward_url"`
 }
 
-func CreateWebhook(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateWebhook(w http.ResponseWriter, r *http.Request) {
 	var req CreateRequest
 	_ = json.NewDecoder(r.Body).Decode(&req) // Optional: ignore error if body is empty
 
@@ -25,7 +23,10 @@ func CreateWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.ForwardURL != "" {
-		store.SetForwardURL(id, req.ForwardURL)
+		if err := h.DB.CreateWebhook(id, req.ForwardURL); err != nil {
+			http.Error(w, "failed to create webhook", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	resp := map[string]string{
