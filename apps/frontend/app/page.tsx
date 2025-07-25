@@ -14,6 +14,7 @@ import {
   CardDescription,
 } from "../components/ui/card"; // Assuming card is in components/ui
 import React from "react";
+import Link from "next/link";
 
 // --- Main Landing Page Component ---
 export default function HookinatorLandingPage() {
@@ -21,18 +22,20 @@ export default function HookinatorLandingPage() {
     <div className="bg-black text-white min-h-screen flex flex-col">
       {/* --- Header --- */}
       <header className="px-4 lg:px-6 h-16 flex items-center border-b border-gray-800 sticky top-0 bg-black/80 backdrop-blur-sm z-50">
-        <a className="flex items-center justify-center gap-2" href="#">
+        <Link className="flex items-center justify-center gap-2" href="/">
           <GitBranch className="h-6 w-6" />
           <span className="font-bold text-xl">Hookinator</span>
-        </a>
+        </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button
-            variant="default"
-            className="bg-white text-black hover:bg-gray-200 font-bold sm:font-extrabold"
-          >
-            Sign In
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <Link href="/sign-in">
+            <Button
+              variant="default"
+              className="bg-white text-black hover:bg-gray-200 font-bold sm:font-extrabold"
+            >
+              Sign In
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </nav>
       </header>
 
@@ -51,12 +54,14 @@ export default function HookinatorLandingPage() {
                 hassle.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
-                >
-                  Get Started
-                </Button>
+                <Link href="/sign-in">
+                  <Button
+                    size="lg"
+                    className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
+                  >
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -144,13 +149,15 @@ export default function HookinatorLandingPage() {
               integrations faster than ever before.
             </p>
             <div className="mt-6">
-              <Button
-                size="lg"
-                className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
-              >
-                Get Started for Free
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              <Link href="/sign-in">
+                <Button
+                  size="lg"
+                  className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
+                >
+                  Get Started for Free
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </div>
         </section>

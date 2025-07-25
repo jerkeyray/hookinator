@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Copy, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 export type Webhook = {
   id: string;
@@ -24,6 +26,18 @@ export type Webhook = {
 };
 
 export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = async (url: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Failed to copy to clipboard:", err);
+    }
+  };
+
   return (
     <Card className="border-gray-800 bg-black shadow-lg shadow-white/5">
       <CardHeader>
@@ -54,16 +68,22 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
               >
                 <TableCell>
                   <div className="font-mono text-xs bg-gray-900 p-2 rounded-md flex items-center justify-between">
-                    <span>{hook.url}</span>
+                    <span className="truncate mr-2">{hook.url}</span>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-7 w-7 flex-shrink-0"
                       aria-label="Copy endpoint URL"
+                      onClick={() => copyToClipboard(hook.url, hook.id)}
                     >
-                      <Copy className="h-4 w-4 text-gray-400" />
+                      <Copy
+                        className={`h-4 w-4 ${copiedId === hook.id ? "text-green-400" : "text-gray-400"}`}
+                      />
                     </Button>
                   </div>
+                  {copiedId === hook.id && (
+                    <p className="text-xs text-green-400 mt-1">Copied!</p>
+                  )}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
                   {hook.createdAt}
@@ -72,14 +92,16 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
                   {hook.requests}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-gray-700 hover:bg-gray-800"
-                  >
-                    Inspect
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
+                  <Link href={`/dashboard/webhook/${hook.id}`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-gray-700 hover:bg-gray-800"
+                    >
+                      Inspect
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  </Link>
                 </TableCell>
               </TableRow>
             ))}

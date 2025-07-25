@@ -56,10 +56,19 @@ func New() (*DB, error) {
 
 // Migrate creates the necessary database tables if they don't exist.
 func (db *DB) Migrate() error {
+	// Table for storing users (assuming this table exists or will be created by your auth system)
+	usersTable := `
+    CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(255) PRIMARY KEY,
+        email VARCHAR(255) UNIQUE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );`
+
 	// Table for storing webhook configuration (like the forwarding URL)
 	webhookTable := `
     CREATE TABLE IF NOT EXISTS webhooks (
         id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         forward_url TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );`
@@ -75,6 +84,9 @@ func (db *DB) Migrate() error {
         received_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );`
 
+	if _, err := db.Exec(usersTable); err != nil {
+		return fmt.Errorf("failed to create users table: %w", err)
+	}
 	if _, err := db.Exec(webhookTable); err != nil {
 		return fmt.Errorf("failed to create webhooks table: %w", err)
 	}
@@ -158,4 +170,100 @@ func (db *DB) GetRequests(webhookID string, limit int) ([]WebhookRequest, error)
     }
 
     return requests, rows.Err()
+}
+
+// CreateUserWebhook creates a new webhook entry associated with a user.
+func (db *DB) CreateUserWebhook(webhookID, userID, forwardURL string) error {
+	// First ensure the user exists
+	_, err := db.Exec("INSERT INTO users (id) VALUES ($1) ON CONFLICT (id) DO NOTHING", userID)
+	if err != nil {
+		return fmt.Errorf("failed to ensure user exists: %w", err)
+	}
+
+	query := `INSERT INTO webhooks (id, user_id, forward_url) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET forward_url = $3;`
+	_, err = db.Exec(query, webhookID, userID, forwardURL)
+	if err != nil {
+		return fmt.Errorf("failed to create webhook for user %s: %w", userID, err)
+	}
+	return nil
+}
+
+// GetUserWebhooks retrieves all webhooks for a given user.
+func (db *DB) GetUserWebhooks(userID string) ([]map[string]interface{}, error) {
+	query := `SELECT id, forward_url, created_at FROM webhooks WHERE user_id = $1 ORDER BY created_at DESC`
+	
+	rows, err := db.Query(query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get webhooks for user %s: %w", userID, err)
+	}
+	defer rows.Close()
+
+	var webhooks []map[string]interface{}
+	for rows.Next() {
+		var id, forwardURL string
+		var createdAt time.Time
+		
+		err := rows.Scan(&id, &forwardURL, &createdAt)
+		if err != nil {
+			return nil, err
+		}
+		
+		webhook := map[string]interface{}{
+			"id":          id,
+			"forward_url": forwardURL,
+			"created_at":  createdAt,
+		}
+		
+		webhooks = append(webhooks, webhook)
+	}
+
+	return webhooks, rows.Err()
+}
+
+// GetWebhookRequests retrieves webhook requests from the database for a given webhook ID,
+// but only if the webhook belongs to the specified user.
+func (db *DB) GetWebhookRequests(webhookID, userID string, limit int) ([]WebhookRequest, error) {
+	// First verify that the webhook belongs to the user
+	var count int
+	checkQuery := `SELECT COUNT(*) FROM webhooks WHERE id = $1 AND user_id = $2`
+	err := db.QueryRow(checkQuery, webhookID, userID).Scan(&count)
+	if err != nil {
+		return nil, fmt.Errorf("failed to verify webhook ownership: %w", err)
+	}
+	if count == 0 {
+		return nil, fmt.Errorf("webhook not found or does not belong to user")
+	}
+
+	// Now get the requests
+	query := `
+		SELECT method, headers, body, received_at 
+		FROM requests 
+		WHERE webhook_id = $1 
+		ORDER BY received_at DESC 
+		LIMIT $2`
+	
+	rows, err := db.Query(query, webhookID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var requests []WebhookRequest
+	for rows.Next() {
+		var req WebhookRequest
+		var headersStr string
+		
+		err := rows.Scan(&req.Method, &headersStr, &req.Body, &req.Timestamp)
+		if err != nil {
+			return nil, err
+		}
+		
+		// For now, we'll just store headers as a simple string
+		// In a production app, you'd parse the JSON back to map[string]string
+		req.Headers = map[string]string{"raw": headersStr}
+		
+		requests = append(requests, req)
+	}
+
+	return requests, rows.Err()
 }
