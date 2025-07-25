@@ -1,9 +1,12 @@
 package database
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
@@ -17,15 +20,14 @@ type DB struct {
 
 // WebhookRequest represents a single webhook request captured.
 type WebhookRequest struct {
-	Timestamp time.Time
-	Method    string
-	Headers   map[string]string
-	Body      string
+	Timestamp time.Time   `json:"timestamp"`
+	Method    string      `json:"method"`
+	Headers   http.Header `json:"headers"`
+	Body      string      `json:"body"`
 }
 
 // New connects to the database and returns a DB instance.
 func New() (*DB, error) {
-	// Get connection string from environment variables
 	connStr := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
@@ -39,10 +41,11 @@ func New() (*DB, error) {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	// Ping the database to verify the connection.
-	// We'll retry a few times to give the DB container time to start.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	for i := 0; i < 5; i++ {
-		err = db.Ping()
+		err = db.PingContext(ctx)
 		if err == nil {
 			log.Println("Successfully connected to the database.")
 			return &DB{db}, nil
@@ -55,30 +58,39 @@ func New() (*DB, error) {
 }
 
 // Migrate creates the necessary database tables if they don't exist.
-func (db *DB) Migrate() error {
-	// Table for storing webhook configuration (like the forwarding URL)
+func (db *DB) Migrate(ctx context.Context) error {
+	userTable := `
+	CREATE TABLE IF NOT EXISTS users (
+		id VARCHAR(255) PRIMARY KEY,
+		email VARCHAR(255) UNIQUE,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
+
 	webhookTable := `
-    CREATE TABLE IF NOT EXISTS webhooks (
-        id VARCHAR(255) PRIMARY KEY,
-        forward_url TEXT,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );`
+	CREATE TABLE IF NOT EXISTS webhooks (
+		id VARCHAR(255) PRIMARY KEY,
+		user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+		forward_url TEXT,
+		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
 
-	// Table for storing individual requests to a webhook
 	requestsTable := `
-    CREATE TABLE IF NOT EXISTS requests (
-        request_id SERIAL PRIMARY KEY,
-        webhook_id VARCHAR(255) REFERENCES webhooks(id) ON DELETE CASCADE,
-        method VARCHAR(10),
-        headers JSONB,
-        body TEXT,
-        received_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );`
+	CREATE TABLE IF NOT EXISTS requests (
+		request_id SERIAL PRIMARY KEY,
+		webhook_id VARCHAR(255) REFERENCES webhooks(id) ON DELETE CASCADE,
+		method VARCHAR(10),
+		headers JSONB,
+		body TEXT,
+		received_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	);`
 
-	if _, err := db.Exec(webhookTable); err != nil {
+	if _, err := db.ExecContext(ctx, userTable); err != nil {
+		return fmt.Errorf("failed to create users table: %w", err)
+	}
+	if _, err := db.ExecContext(ctx, webhookTable); err != nil {
 		return fmt.Errorf("failed to create webhooks table: %w", err)
 	}
-	if _, err := db.Exec(requestsTable); err != nil {
+	if _, err := db.ExecContext(ctx, requestsTable); err != nil {
 		return fmt.Errorf("failed to create requests table: %w", err)
 	}
 
@@ -87,75 +99,134 @@ func (db *DB) Migrate() error {
 }
 
 // SaveRequest saves a webhook request to the database.
-func (db *DB) SaveRequest(webhookID string, req WebhookRequest) error {
+func (db *DB) SaveRequest(ctx context.Context, webhookID string, req WebhookRequest) error {
+	// FIX: Marshal headers into a JSON string for the JSONB column.
+	headersJSON, err := json.Marshal(req.Headers)
+	if err != nil {
+		return fmt.Errorf("failed to marshal headers to JSON: %w", err)
+	}
+
 	query := `
-    INSERT INTO requests (webhook_id, method, headers, body, received_at)
-    VALUES ($1, $2, $3, $4, $5)`
+	INSERT INTO requests (webhook_id, method, headers, body, received_at)
+	VALUES ($1, $2, $3, $4, $5)`
 
-	// For now, we'll store headers as a simple string. For real apps, JSONB is better.
-	// This is a simplified example. A production app would serialize headers to JSON.
-	headersStr := fmt.Sprintf("%v", req.Headers)
-
-	_, err := db.Exec(query, webhookID, req.Method, headersStr, req.Body, req.Timestamp)
+	_, err = db.ExecContext(ctx, query, webhookID, req.Method, headersJSON, req.Body, req.Timestamp)
 	if err != nil {
 		return fmt.Errorf("failed to save request for webhook %s: %w", webhookID, err)
 	}
 	return nil
 }
 
-// CreateWebhook creates a new webhook entry and returns its ID.
-// For now, we are not using this, but it's here for future use.
-func (db *DB) CreateWebhook(id string, forwardURL string) error {
-    query := `INSERT INTO webhooks (id, forward_url) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET forward_url = $2;`
-    _, err := db.Exec(query, id, forwardURL)
-    return err
+// UpsertUser creates a new user or updates their email if they already exist.
+func (db *DB) UpsertUser(ctx context.Context, id, email string) error {
+	query := `
+	INSERT INTO users (id, email) VALUES ($1, $2)
+	ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
+	`
+	_, err := db.ExecContext(ctx, query, id, email)
+	return err
+}
+
+// CreateWebhook creates or updates a webhook entry for a specific user.
+func (db *DB) CreateWebhook(ctx context.Context, id, userID, forwardURL string) error {
+	query := `INSERT INTO webhooks (id, user_id, forward_url) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET forward_url = EXCLUDED.forward_url;`
+	_, err := db.ExecContext(ctx, query, id, userID, forwardURL)
+	return err
 }
 
 // GetForwardURL retrieves the forwarding URL for a given webhook ID.
-func (db *DB) GetForwardURL(webhookID string) (string, error) {
-    var forwardURL string
-    query := `SELECT forward_url FROM webhooks WHERE id = $1`
-    err := db.QueryRow(query, webhookID).Scan(&forwardURL)
-    if err != nil {
-        if err == sql.ErrNoRows {
-            return "", nil // No forward URL set is not an error
-        }
-        return "", err
-    }
-    return forwardURL, nil
+func (db *DB) GetForwardURL(ctx context.Context, webhookID string) (string, error) {
+	var forwardURL sql.NullString
+	query := `SELECT forward_url FROM webhooks WHERE id = $1`
+	err := db.QueryRowContext(ctx, query, webhookID).Scan(&forwardURL)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", err
+		}
+		return "", fmt.Errorf("failed to query forward URL: %w", err)
+	}
+	return forwardURL.String, nil
 }
 
-// GetRequests retrieves webhook requests from the database for a given webhook ID
-func (db *DB) GetRequests(webhookID string, limit int) ([]WebhookRequest, error) {
-    query := `
-        SELECT method, headers, body, received_at 
-        FROM requests 
-        WHERE webhook_id = $1 
-        ORDER BY received_at DESC 
-        LIMIT $2`
-    
-    rows, err := db.Query(query, webhookID, limit)
-    if err != nil {
-        return nil, err
-    }
-    defer rows.Close()
+// GetWebhooksForUser retrieves all webhooks for a given user.
+func (db *DB) GetWebhooksForUser(ctx context.Context, userID string) ([]map[string]interface{}, error) {
+	query := `
+	SELECT id, forward_url, created_at
+	FROM webhooks
+	WHERE user_id = $1
+	ORDER BY created_at DESC;
+	`
+	rows, err := db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query webhooks for user %s: %w", userID, err)
+	}
+	defer rows.Close()
 
-    var requests []WebhookRequest
-    for rows.Next() {
-        var req WebhookRequest
-        var headersStr string
-        
-        err := rows.Scan(&req.Method, &headersStr, &req.Body, &req.Timestamp)
-        if err != nil {
-            return nil, err
-        }
-        
-        // For now, we'll just store headers as a simple string
-        // In a production app, you'd parse the JSON back to map[string]string
-        req.Headers = map[string]string{"raw": headersStr}
-        
-        requests = append(requests, req)
-    }
+	var webhooks []map[string]interface{}
+	for rows.Next() {
+		var id, forwardURL string
+		var createdAt time.Time
+		if err := rows.Scan(&id, &forwardURL, &createdAt); err != nil {
+			return nil, fmt.Errorf("failed to scan webhook row: %w", err)
+		}
+		webhooks = append(webhooks, map[string]interface{}{
+			"id":          id,
+			"forward_url": forwardURL,
+			"created_at":  createdAt,
+		})
+	}
+	return webhooks, rows.Err()
+}
 
-    return requests, rows.Err()
+// GetRequests retrieves webhook requests from the database for a given webhook ID.
+func (db *DB) GetRequests(ctx context.Context, webhookID string, limit int) ([]WebhookRequest, error) {
+	query := `
+	SELECT r.method, r.headers, r.body, r.received_at
+	FROM requests r
+	JOIN webhooks w ON r.webhook_id = w.id
+	WHERE r.webhook_id = $1
+	ORDER BY r.received_at DESC
+	LIMIT $2`
+
+	rows, err := db.QueryContext(ctx, query, webhookID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query requests: %w", err)
+	}
+	defer rows.Close()
+
+	var requests []WebhookRequest
+	for rows.Next() {
+		var req WebhookRequest
+		var headersJSON []byte // Scan the JSONB data into a byte slice
+
+		err := rows.Scan(&req.Method, &headersJSON, &req.Body, &req.Timestamp)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan request row: %w", err)
+		}
+
+		// FIX: Unmarshal the JSON byte slice into the headers map.
+		if err := json.Unmarshal(headersJSON, &req.Headers); err != nil {
+			log.Printf("Warning: failed to unmarshal headers for a request: %v", err)
+			req.Headers = nil
+		}
+
+		requests = append(requests, req)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during rows iteration: %w", err)
+	}
+
+	return requests, nil
+}
+
+// CheckWebhookOwnership verifies that a webhook belongs to a specific user.
+func (db *DB) CheckWebhookOwnership(ctx context.Context, webhookID, userID string) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM webhooks WHERE id = $1 AND user_id = $2)`
+	err := db.QueryRowContext(ctx, query, webhookID, userID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check webhook ownership: %w", err)
+	}
+	return exists, nil
 }

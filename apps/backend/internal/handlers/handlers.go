@@ -1,17 +1,229 @@
 package handlers
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
 	"hookinator/internal/database"
+	"hookinator/internal/utils"
+	"io"
+	"log"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-// Handler holds the database connection and provides HTTP handlers
+// contextKey is a custom type to avoid context key collisions.
+type contextKey string
+
+const userContextKey = contextKey("userID")
+
+// Handler holds dependencies for the application.
 type Handler struct {
-	DB *database.DB
+	DB        *database.DB
+	Client    *http.Client
+	BaseURL   string
+	JWTSecret string
 }
 
-// New creates a new Handler instance with the provided database connection
-func New(db *database.DB) *Handler {
+// New creates a new Handler instance with dependencies.
+func New(db *database.DB, baseURL, jwtSecret string) *Handler {
 	return &Handler{
 		DB: db,
+		Client: &http.Client{
+			Timeout: 10 * time.Second,
+		},
+		BaseURL:   baseURL,
+		JWTSecret: jwtSecret,
 	}
+}
+
+// --- JSON Response Helpers ---
+
+func (h *Handler) respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Error marshalling JSON: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
+func (h *Handler) respondWithError(w http.ResponseWriter, code int, message string) {
+	h.respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+// --- Middleware ---
+
+func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			h.respondWithError(w, http.StatusUnauthorized, "Authorization header required")
+			return
+		}
+
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte(h.JWTSecret), nil
+		})
+
+		if err != nil || !token.Valid {
+			h.respondWithError(w, http.StatusUnauthorized, "Invalid or expired token")
+			return
+		}
+
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			h.respondWithError(w, http.StatusUnauthorized, "Invalid token claims")
+			return
+		}
+		userID, ok := claims["sub"].(string)
+		if !ok || userID == "" {
+			h.respondWithError(w, http.StatusUnauthorized, "User ID not found in token")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userContextKey, userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// --- Public Handlers ---
+
+// HandleGoogleLogin would be here (as implemented before).
+
+// HandleWebhook receives, logs, and forwards an incoming webhook.
+func (h *Handler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
+	// This handler remains public and unchanged.
+	id := chi.URLParam(r, "id")
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Cannot read request body")
+		return
+	}
+	defer r.Body.Close()
+
+	webhookReq := database.WebhookRequest{
+		Timestamp: time.Now(),
+		Method:    r.Method,
+		Headers:   r.Header,
+		Body:      string(bodyBytes),
+	}
+
+	if err := h.DB.SaveRequest(r.Context(), id, webhookReq); err != nil {
+		log.Printf("Failed to save webhook request: %v", err)
+	}
+
+	forwardURL, err := h.DB.GetForwardURL(r.Context(), id)
+	if err != nil {
+		log.Printf("Failed to get forward URL for %s: %v", id, err)
+	} else if forwardURL != "" {
+		go func() {
+			req, err := http.NewRequestWithContext(context.Background(), r.Method, forwardURL, bytes.NewReader(bodyBytes))
+			if err != nil {
+				log.Printf("Failed to create forward request for %s: %v", id, err)
+				return
+			}
+			req.Header = r.Header.Clone()
+
+			resp, err := h.Client.Do(req)
+			if err != nil {
+				log.Printf("Failed to forward webhook for %s: %v", id, err)
+				return
+			}
+			defer resp.Body.Close()
+			log.Printf("Webhook for %s forwarded to %s, status: %d", id, forwardURL, resp.StatusCode)
+		}()
+	}
+
+	h.respondWithJSON(w, http.StatusOK, map[string]string{"status": "Webhook received"})
+}
+
+// --- Protected Handlers ---
+
+type CreateRequest struct {
+	ForwardURL string `json:"forward_url"`
+}
+
+func (h *Handler) CreateWebhook(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userContextKey).(string)
+
+	var req CreateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	id, err := utils.GenerateID(12)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to generate ID")
+		return
+	}
+
+	if err := h.DB.CreateWebhook(r.Context(), id, userID, req.ForwardURL); err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to create webhook")
+		return
+	}
+
+	resp := map[string]string{
+		"webhook_url": fmt.Sprintf("%s/webhook/%s", h.BaseURL, id),
+		"inspect_url": fmt.Sprintf("%s/inspect/%s", h.BaseURL, id),
+	}
+	h.respondWithJSON(w, http.StatusCreated, resp)
+}
+
+func (h *Handler) ListWebhooks(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userContextKey).(string)
+
+	webhooks, err := h.DB.GetWebhooksForUser(r.Context(), userID)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to retrieve webhooks")
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, webhooks)
+}
+
+func (h *Handler) InspectWebhook(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userContextKey).(string)
+	webhookID := chi.URLParam(r, "id")
+
+	// --- UNCOMMENT THIS BLOCK ---
+	isOwner, err := h.DB.CheckWebhookOwnership(r.Context(), webhookID, userID)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to verify ownership")
+		return
+	}
+	if !isOwner {
+		h.respondWithError(w, http.StatusForbidden, "You do not have permission to view this webhook")
+		return
+	}
+	// --- END OF BLOCK ---
+
+	events, err := h.DB.GetRequests(r.Context(), webhookID, 100)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to get webhook requests")
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, events)
+}
+
+
+// You'll also need to add the HandleGoogleLogin handler here
+// and pass the JWTSecret from the handler struct.
+func (h *Handler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
+	// ... implementation from before, using h.JWTSecret
 }
