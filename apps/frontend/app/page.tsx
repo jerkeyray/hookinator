@@ -1,22 +1,54 @@
+"use client";
+
 import {
   ArrowRight,
   Code,
   Terminal,
   CheckCircle,
   GitBranch,
+  User,
+  LogOut,
 } from "lucide-react";
 import { Button } from "../components/ui/button"; // Assuming button is in components/ui
+import { Card, CardHeader, CardContent } from "../components/ui/card"; // Assuming card is in components/ui
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from "../components/ui/card"; // Assuming card is in components/ui
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 import React from "react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 // --- Main Landing Page Component ---
 export default function HookinatorLandingPage() {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleSignInClick = () => {
+    if (session) {
+      router.push("/dashboard");
+    } else {
+      router.push("/sign-in");
+    }
+  };
+
+  const handleGetStartedClick = () => {
+    if (session) {
+      router.push("/dashboard");
+    } else {
+      router.push("/sign-in");
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: "/" });
+  };
+
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
       {/* --- Header --- */}
@@ -26,13 +58,67 @@ export default function HookinatorLandingPage() {
           <span className="font-bold text-xl">Hookinator</span>
         </a>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Button
-            variant="default"
-            className="bg-white text-black hover:bg-gray-200 font-bold sm:font-extrabold"
-          >
-            Sign In
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-white text-black hover:bg-gray-200 font-bold px-3 py-2 rounded-md"
+                >
+                  <div className="flex items-center gap-2">
+                    {session.user?.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt={session.user?.name || "User"}
+                        width={24}
+                        height={24}
+                        className="w-6 h-6 rounded-full"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
+                    <span className="hidden sm:inline-block">
+                      {session.user?.name || session.user?.email}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 bg-gray-900 border-gray-700"
+              >
+                <DropdownMenuLabel className="text-gray-200">
+                  My Account
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard")}
+                  className="cursor-pointer text-gray-200 hover:bg-gray-800"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-gray-700" />
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer text-red-400 hover:bg-gray-800"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button
+              variant="default"
+              className="bg-white text-black hover:bg-gray-200 font-bold sm:font-extrabold"
+              onClick={handleSignInClick}
+            >
+              Sign In
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </nav>
       </header>
 
@@ -54,8 +140,9 @@ export default function HookinatorLandingPage() {
                 <Button
                   size="lg"
                   className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
+                  onClick={handleGetStartedClick}
                 >
-                  Get Started
+                  {session ? "Go to Dashboard" : "Get Started"}
                 </Button>
               </div>
             </div>
@@ -147,8 +234,9 @@ export default function HookinatorLandingPage() {
               <Button
                 size="lg"
                 className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
+                onClick={handleGetStartedClick}
               >
-                Get Started for Free
+                {session ? "Go to Dashboard" : "Get Started for Free"}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
