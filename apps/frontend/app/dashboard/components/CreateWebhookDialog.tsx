@@ -78,14 +78,14 @@ export function CreateWebhookDialog({
           className="bg-white text-black hover:bg-gray-100 border-0"
         >
           <PlusCircle className="h-4 w-4 mr-2" />
-          add new source
+          Add Endpoint
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800 z-[9999]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
-              Create a new Webhook
+              Create a new Endpoint
             </DialogTitle>
             <DialogDescription className="text-gray-400">
               Set up a new webhook endpoint to receive incoming requests
@@ -97,14 +97,14 @@ export function CreateWebhookDialog({
                 htmlFor="name"
                 className="text-sm font-medium text-gray-300"
               >
-                Webhook Name
+                Endpoint Name
               </Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                placeholder="My Awesome Webhook"
+                placeholder="My Awesome Endpoint"
               />
             </div>
           </div>
@@ -114,7 +114,7 @@ export function CreateWebhookDialog({
               className="bg-white text-black hover:bg-gray-100 border-0"
             >
               <PlusCircle className="h-4 w-4 mr-2" />
-              Create Webhook
+              Create Endpoint
             </Button>
           </DialogFooter>
         </form>

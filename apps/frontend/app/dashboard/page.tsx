@@ -86,18 +86,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-black text-white">
+    <div className="flex h-screen w-full bg-black text-white overflow-hidden">
       <Sidebar userImage={userImage} userName={userName} />
       <div className="flex flex-col flex-1 min-w-0">
         <DashboardHeader />
-        <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 xl:p-10">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 xl:p-10 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-shrink-0">
             <div className="min-w-0">
               <h1 className="text-xl font-bold sm:text-2xl lg:text-3xl xl:text-4xl text-white truncate">
                 Dashboard
               </h1>
               <p className="text-gray-400 mt-1 text-sm lg:text-base">
-                Manage your webhook endpoints
+                Manage your webhook endpoints and inspect incoming requests
               </p>
             </div>
             <div className="flex-shrink-0">
@@ -105,7 +105,7 @@ export default function DashboardPage() {
             </div>
           </div>
           {/* Render webhooks list */}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <WebhookList webhooks={userWebhooks} />
           </div>
         </main>

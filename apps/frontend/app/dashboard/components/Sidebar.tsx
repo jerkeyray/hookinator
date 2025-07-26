@@ -33,7 +33,7 @@ export default function Sidebar({
   };
 
   return (
-    <div className="hidden md:block w-56 lg:w-64 xl:w-72 flex-shrink-0 border-r border-gray-800 bg-black">
+    <div className="hidden md:block w-40 lg:w-48 xl:w-56 flex-shrink-0 border-r border-gray-800 bg-black">
       <div className="flex h-full max-h-screen flex-col">
         {/* Header */}
         <div className="flex h-16 items-center border-b border-gray-800 px-4">

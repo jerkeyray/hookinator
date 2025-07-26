@@ -5,14 +5,6 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Copy, ArrowRight, Activity, Calendar, Globe } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils";
@@ -53,7 +45,7 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
               <Globe className="h-5 w-5 text-gray-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-400 truncate">
-                  Total Webhooks
+                  Total Endpoints
                 </p>
                 <p className="text-2xl font-bold text-white">
                   {webhooks.length}
@@ -96,119 +88,108 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
         </Card>
       </div>
 
-      {/* Webhooks Table */}
-      <Card className="border border-gray-800 bg-black">
-        <CardHeader className="border-b border-gray-800">
+      {/* Webhooks List */}
+      <Card className="border border-gray-800 bg-black h-full flex flex-col">
+        <CardHeader className="border-b border-gray-800 flex-shrink-0">
           <CardTitle className="text-xl font-bold text-white">
             Your Webhook Endpoints
           </CardTitle>
-          <CardDescription className="text-gray-400">
-            Manage your webhook endpoints and inspect their incoming requests
-          </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-gray-800 hover:bg-transparent">
-                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-left">
-                    Name
-                  </TableHead>
-                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-left">
-                    Endpoint URL
-                  </TableHead>
-                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-left hidden lg:table-cell">
-                    Created
-                  </TableHead>
-                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-center hidden sm:table-cell">
-                    Requests
-                  </TableHead>
-                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-right">
-                    Actions
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {webhooks.map((hook: Webhook) => (
-                  <TableRow
-                    key={hook.id}
-                    className="border-gray-800 hover:bg-transparent"
-                  >
-                    <TableCell className="px-4 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0"></div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">
-                            {hook.name || `Webhook ${hook.id.slice(0, 8)}`}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-mono text-sm bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
-                            <span className="text-black truncate">
-                              {hook.url}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 hover:bg-gray-100 flex-shrink-0"
-                              onClick={() => handleCopyUrl(hook.url)}
-                            >
-                              <Copy className="h-4 w-4 text-gray-600" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell px-4 py-4 text-gray-300">
-                      <span className="truncate block">{hook.createdAt}</span>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell px-4 py-4 text-center">
-                      <div className="flex items-center justify-center">
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            hook.requests > 0
-                              ? "bg-gray-800 text-gray-300 border border-gray-700"
-                              : "bg-gray-900 text-gray-500 border border-gray-800"
-                          }`}
-                        >
+        <CardContent className="!p-0 flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            {webhooks.map((hook: Webhook) => (
+              <div
+                key={hook.id}
+                className="flex items-center justify-between p-6 border-b border-gray-800 hover:bg-gray-900/50 transition-colors cursor-pointer group last:border-b-0"
+                onClick={() => handleInspect(hook.id)}
+              >
+                <div className="flex items-center space-x-4 flex-1 min-w-0">
+                  {/* Icon */}
+                  <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Activity className="h-5 w-5 text-gray-400" />
+                  </div>
+
+                  {/* Main Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h3 className="text-sm font-medium text-white truncate">
+                        {hook.name || `Webhook ${hook.id.slice(0, 8)}`}
+                      </h3>
+                    </div>
+                    <div className="flex items-center space-x-4 text-xs text-gray-400">
+                      <div className="flex items-center space-x-1">
+                        <Activity className="h-3 w-3" />
+                        <span>
                           {hook.requests}{" "}
                           {hook.requests === 1 ? "request" : "requests"}
                         </span>
                       </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-4 text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-700 text-black bg-white"
-                        onClick={() => handleInspect(hook.id)}
-                      >
-                        <Activity className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">Inspect</span>
-                        <ArrowRight className="h-4 w-4 sm:ml-2" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  </div>
+                </div>
 
-          {webhooks.length === 0 && (
-            <div className="p-8 text-center">
-              <div className="text-gray-400 mb-2">
-                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium">No webhooks yet</p>
-                <p className="text-sm">
-                  Create your first webhook to start receiving requests
-                </p>
+                {/* Right Side Stats */}
+                <div className="flex items-center space-x-4 text-right">
+                  <div className="text-xs text-gray-400">
+                    <div className="flex items-center space-x-1 mb-1">
+                      <Activity className="h-3 w-3" />
+                      <span>
+                        {hook.requests > 0
+                          ? `${(hook.requests / 24).toFixed(2)} requests/hour`
+                          : "0.00 requests/hour"}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {hook.requests > 0
+                          ? `Last request received ${hook.createdAt}`
+                          : "No requests received yet"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Copy URL Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyUrl(hook.url);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+
+                  {/* Inspect Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleInspect(hook.id);
+                    }}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+
+            {webhooks.length === 0 && (
+              <div className="p-8 text-center">
+                <div className="text-gray-400 mb-2">
+                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">No endpoints yet</p>
+                  <p className="text-sm">
+                    Create your first endpoint to start receiving requests
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
