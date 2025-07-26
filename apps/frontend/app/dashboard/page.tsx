@@ -68,13 +68,11 @@ export default function DashboardPage() {
     "https://ui-avatars.com/api/?name=U&background=1a1a1a&color=fff&size=36";
 
   // --- Route Protection ---
-  // If the user is not authenticated, redirect them to the sign-in page.
   if (status === "unauthenticated") {
     redirect("/sign-in");
   }
 
   // --- Loading State ---
-  // Show a simple loading message while the session status is being determined.
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
@@ -84,24 +82,28 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] bg-black text-white">
+    <div className="flex min-h-screen w-full bg-black text-white">
       <Sidebar />
-      <div className="flex flex-col">
+      <div className="flex flex-col flex-1 min-w-0">
         <DashboardHeader userImage={userImage} />
-        <main className="flex flex-1 flex-col gap-6 p-6 lg:gap-8 lg:p-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold md:text-3xl text-white">
+        <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 xl:p-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold sm:text-2xl lg:text-3xl xl:text-4xl text-white truncate">
                 Dashboard
               </h1>
-              <p className="text-gray-400 mt-1">
+              <p className="text-gray-400 mt-1 text-sm lg:text-base">
                 Manage your webhook endpoints
               </p>
             </div>
-            <CreateSourceDialog onWebhookCreated={fetchWebhooks} />
+            <div className="flex-shrink-0">
+              <CreateSourceDialog onWebhookCreated={fetchWebhooks} />
+            </div>
           </div>
           {/* Render webhooks list */}
-          <WebhookList webhooks={userWebhooks} />
+          <div className="min-w-0">
+            <WebhookList webhooks={userWebhooks} />
+          </div>
         </main>
       </div>
     </div>

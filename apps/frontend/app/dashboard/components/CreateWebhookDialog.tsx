@@ -75,13 +75,13 @@ export function CreateWebhookDialog({
         <Button
           data-testid="create-webhook-button"
           onClick={() => {}}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg"
+          className="bg-white text-black hover:bg-gray-100 border-0"
         >
           <PlusCircle className="h-4 w-4 mr-2" />
           Create Webhook
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-gradient-to-br from-gray-900 to-black text-white border-gray-800 z-[9999] shadow-2xl">
+      <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800 z-[9999]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
@@ -103,7 +103,7 @@ export function CreateWebhookDialog({
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="bg-gray-800 border-gray-700 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
                 placeholder="My Awesome Webhook"
               />
             </div>
@@ -111,7 +111,7 @@ export function CreateWebhookDialog({
           <DialogFooter>
             <Button
               type="submit"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0"
+              className="bg-white text-black hover:bg-gray-100 border-0"
             >
               <PlusCircle className="h-4 w-4 mr-2" />
               Create Webhook

@@ -45,13 +45,13 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
   return (
     <div className="space-y-6">
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-gray-800 bg-gradient-to-br from-gray-900 to-black">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Globe className="h-5 w-5 text-blue-400" />
-              <div>
-                <p className="text-sm font-medium text-gray-400">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <Card className="border border-gray-800 bg-black">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center space-x-3">
+              <Globe className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-400 truncate">
                   Total Webhooks
                 </p>
                 <p className="text-2xl font-bold text-white">
@@ -62,12 +62,12 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
           </CardContent>
         </Card>
 
-        <Card className="border-gray-800 bg-gradient-to-br from-gray-900 to-black">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Activity className="h-5 w-5 text-green-400" />
-              <div>
-                <p className="text-sm font-medium text-gray-400">
+        <Card className="border border-gray-800 bg-black">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center space-x-3">
+              <Activity className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-400 truncate">
                   Total Requests
                 </p>
                 <p className="text-2xl font-bold text-white">
@@ -78,12 +78,12 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
           </CardContent>
         </Card>
 
-        <Card className="border-gray-800 bg-gradient-to-br from-gray-900 to-black">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-5 w-5 text-purple-400" />
-              <div>
-                <p className="text-sm font-medium text-gray-400">
+        <Card className="border border-gray-800 bg-black sm:col-span-2 lg:col-span-1">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex items-center space-x-3">
+              <Calendar className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-400 truncate">
                   Active Today
                 </p>
                 <p className="text-2xl font-bold text-white">
@@ -96,7 +96,7 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
       </div>
 
       {/* Webhooks Table */}
-      <Card className="border-gray-800 bg-gradient-to-br from-gray-900 to-black shadow-xl">
+      <Card className="border border-gray-800 bg-black">
         <CardHeader className="border-b border-gray-800">
           <CardTitle className="text-xl font-bold text-white">
             Your Webhook Endpoints
@@ -105,17 +105,17 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
             Manage your webhook endpoints and inspect their incoming requests
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-gray-800 hover:bg-gray-800/50">
+              <TableRow className="border-gray-800 hover:bg-transparent">
                 <TableHead className="text-gray-300 font-medium">
                   Endpoint URL
                 </TableHead>
-                <TableHead className="text-gray-300 font-medium hidden md:table-cell">
+                <TableHead className="text-gray-300 font-medium hidden lg:table-cell">
                   Created
                 </TableHead>
-                <TableHead className="text-gray-300 font-medium text-center hidden md:table-cell">
+                <TableHead className="text-gray-300 font-medium text-center hidden sm:table-cell">
                   Requests
                 </TableHead>
                 <TableHead className="text-gray-300 font-medium text-right">
@@ -127,20 +127,20 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
               {webhooks.map((hook: Webhook) => (
                 <TableRow
                   key={hook.id}
-                  className="border-gray-800 hover:bg-gray-800/30 transition-colors"
+                  className="border-gray-800 hover:bg-transparent"
                 >
                   <TableCell className="py-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <div className="flex-1">
-                        <div className="font-mono text-sm bg-gray-800 p-3 rounded-lg border border-gray-700 flex items-center justify-between">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-mono text-sm bg-gray-900 p-3 rounded-lg border border-gray-800 flex items-center justify-between">
                           <span className="text-gray-200 truncate">
                             {hook.url}
                           </span>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 ml-2 hover:bg-gray-700"
+                            className="h-8 w-8 ml-2 hover:bg-gray-800 flex-shrink-0"
                             onClick={() => handleCopyUrl(hook.url)}
                           >
                             <Copy className="h-4 w-4 text-gray-400" />
@@ -149,16 +149,16 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-gray-300">
-                    {hook.createdAt}
+                  <TableCell className="hidden lg:table-cell text-gray-300">
+                    <span className="truncate block">{hook.createdAt}</span>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-center">
+                  <TableCell className="hidden sm:table-cell text-center">
                     <div className="flex items-center justify-center">
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
                           hook.requests > 0
-                            ? "bg-green-900/20 text-green-400 border border-green-500/20"
-                            : "bg-gray-800 text-gray-400 border border-gray-700"
+                            ? "bg-gray-800 text-gray-300 border border-gray-700"
+                            : "bg-gray-900 text-gray-500 border border-gray-800"
                         }`}
                       >
                         {hook.requests}{" "}
@@ -170,12 +170,12 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="border-gray-600 hover:bg-gray-800 hover:border-gray-500 text-gray-200"
+                      className="border-gray-700 text-black bg-white"
                       onClick={() => handleInspect(hook.id)}
                     >
                       <Activity className="h-4 w-4 mr-2" />
-                      Inspect
-                      <ArrowRight className="h-4 w-4 ml-2" />
+                      <span className="hidden sm:inline">Inspect</span>
+                      <ArrowRight className="h-4 w-4 sm:ml-2" />
                     </Button>
                   </TableCell>
                 </TableRow>
