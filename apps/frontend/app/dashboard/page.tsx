@@ -33,6 +33,7 @@ export default function DashboardPage() {
               return {
                 id: hook.id,
                 url: generateWebhookUrl(hook.id),
+                name: hook.name,
                 createdAt: formatDate(hook.created_at),
                 requests: requests.length,
               };
@@ -44,6 +45,7 @@ export default function DashboardPage() {
               return {
                 id: hook.id,
                 url: generateWebhookUrl(hook.id),
+                name: hook.name,
                 createdAt: formatDate(hook.created_at),
                 requests: 0,
               };

@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 export type Webhook = {
   id: string;
   url: string;
+  name: string;
   createdAt: string;
   requests: number;
 };
@@ -111,6 +112,9 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
               <TableHeader>
                 <TableRow className="border-gray-800 hover:bg-transparent">
                   <TableHead className="text-gray-300 font-medium px-4 py-3 text-left">
+                    Name
+                  </TableHead>
+                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-left">
                     Endpoint URL
                   </TableHead>
                   <TableHead className="text-gray-300 font-medium px-4 py-3 text-left hidden lg:table-cell">
@@ -133,6 +137,15 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
                     <TableCell className="px-4 py-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">
+                            {hook.name || `Webhook ${hook.id.slice(0, 8)}`}
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4">
+                      <div className="flex items-center space-x-3">
                         <div className="flex-1 min-w-0">
                           <div className="font-mono text-sm bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
                             <span className="text-black truncate">

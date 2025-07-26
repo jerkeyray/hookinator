@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getWebhookRequests } from "@/lib/api";
+import { getWebhookRequests, getWebhook } from "@/lib/api";
 import { WebhookRequest } from "@/lib/types";
 import { formatDate, generateWebhookUrl, copyToClipboard } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -36,22 +36,26 @@ export default function WebhookInspectPage() {
     null
   );
   const [activeTab, setActiveTab] = useState("summary");
+  const [webhook, setWebhook] = useState<{ name: string } | null>(null);
 
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchData = async () => {
       if (status === "authenticated" && session?.backendToken) {
         try {
-          const data = await getWebhookRequests(
-            webhookId,
-            session.backendToken as string
-          );
-          setRequests(data);
-          if (data.length > 0) {
-            setSelectedRequest(data[0]);
+          // Fetch webhook details and requests in parallel
+          const [webhookData, requestsData] = await Promise.all([
+            getWebhook(webhookId, session.backendToken as string),
+            getWebhookRequests(webhookId, session.backendToken as string),
+          ]);
+          
+          setWebhook(webhookData);
+          setRequests(requestsData);
+          if (requestsData.length > 0) {
+            setSelectedRequest(requestsData[0]);
           }
         } catch (error) {
-          console.error("Failed to fetch webhook requests:", error);
-          toast.error("Failed to load webhook requests");
+          console.error("Failed to fetch webhook data:", error);
+          toast.error("Failed to load webhook data");
         } finally {
           setLoading(false);
         }
@@ -59,7 +63,7 @@ export default function WebhookInspectPage() {
     };
 
     if (status === "authenticated") {
-      fetchRequests();
+      fetchData();
     }
   }, [webhookId, session, status]);
 
@@ -109,7 +113,7 @@ export default function WebhookInspectPage() {
   }
 
   const webhookUrl = generateWebhookUrl(webhookId);
-  const sourceName = `Webhook ${webhookId.slice(0, 8)}`;
+  const sourceName = webhook?.name || `Webhook ${webhookId.slice(0, 8)}`;
   const userImage =
     session?.user?.image ||
     "https://ui-avatars.com/api/?name=U&background=1a1a1a&color=fff&size=36";

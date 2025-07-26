@@ -48,6 +48,26 @@ export async function getWebhooks(authToken: string): Promise<ApiWebhook[]> {
   return data || [];
 }
 
+export async function getWebhook(
+  webhookId: string,
+  authToken: string
+): Promise<ApiWebhook> {
+  const response = await fetch(`${API_BASE_URL}/webhook/${webhookId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to fetch webhook");
+  }
+
+  const result = await response.json();
+  return result;
+}
+
 export async function getWebhookRequests(
   webhookId: string,
   authToken: string

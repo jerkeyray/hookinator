@@ -12,6 +12,8 @@ export interface ApiWebhook {
   id: string;
   user_id: string;
   forward_url: string;
+  name: string;
+  source_type: string;
   created_at: string;
 }
 

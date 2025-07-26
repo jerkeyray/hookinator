@@ -204,6 +204,23 @@ func (h *Handler) ListWebhooks(w http.ResponseWriter, r *http.Request) {
 	h.respondWithJSON(w, http.StatusOK, webhooks)
 }
 
+func (h *Handler) GetWebhook(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userContextKey).(string)
+	webhookID := chi.URLParam(r, "id")
+
+	webhook, err := h.DB.GetWebhookByID(r.Context(), webhookID, userID)
+	if err != nil {
+		if err.Error() == "webhook not found" {
+			h.respondWithError(w, http.StatusNotFound, "Webhook not found")
+		} else {
+			h.respondWithError(w, http.StatusInternalServerError, "Failed to retrieve webhook")
+		}
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, webhook)
+}
+
 func (h *Handler) InspectWebhook(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(userContextKey).(string)
 	webhookID := chi.URLParam(r, "id")

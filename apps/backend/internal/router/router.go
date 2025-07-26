@@ -46,6 +46,7 @@ func New(db *database.DB, baseURL, jwtSecret string) http.Handler {
 		r.Use(h.AuthMiddleware)
 
 		r.Post("/create", h.CreateWebhook)
+		r.Get("/webhook/{id}", h.GetWebhook)
 		r.Get("/inspect/{id}", h.InspectWebhook)
 		r.Get("/webhooks", h.ListWebhooks)
 	})

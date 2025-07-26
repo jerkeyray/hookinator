@@ -211,6 +211,8 @@ func (db *DB) GetWebhooksForUser(ctx context.Context, userID string) ([]map[stri
 			"id":           id,
 			"user_id":      dbUserID,
 			"forward_url":  forwardURL,
+			"name":         name,
+			"source_type":  sourceType,
 			"created_at":   createdAt.Format(time.RFC3339),
 		})
 	}
@@ -262,6 +264,33 @@ func (db *DB) GetRequests(ctx context.Context, webhookID string, limit int) ([]W
 	}
 
 	return requests, nil
+}
+
+// GetWebhookByID retrieves a single webhook by ID for a specific user.
+func (db *DB) GetWebhookByID(ctx context.Context, webhookID, userID string) (map[string]interface{}, error) {
+	query := `
+	SELECT id, user_id, forward_url, name, source_type, created_at
+	FROM webhooks
+	WHERE id = $1 AND user_id = $2;
+	`
+	var id, dbUserID, forwardURL, name, sourceType string
+	var createdAt time.Time
+	err := db.QueryRowContext(ctx, query, webhookID, userID).Scan(&id, &dbUserID, &forwardURL, &name, &sourceType, &createdAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("webhook not found")
+		}
+		return nil, fmt.Errorf("failed to query webhook: %w", err)
+	}
+	
+	return map[string]interface{}{
+		"id":           id,
+		"user_id":      dbUserID,
+		"forward_url":  forwardURL,
+		"name":         name,
+		"source_type":  sourceType,
+		"created_at":   createdAt.Format(time.RFC3339),
+	}, nil
 }
 
 // CheckWebhookOwnership verifies that a webhook belongs to a specific user.
