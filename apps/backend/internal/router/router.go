@@ -35,7 +35,7 @@ func New(db *database.DB, baseURL, jwtSecret string) http.Handler {
 		w.Write([]byte("webhook server is running"))
 	})
 	// The login handler will be public
-	// r.Post("/auth/google/login", h.HandleGoogleLogin)
+	r.Post("/auth/google/login", h.HandleGoogleLogin)
 
 	// Receiving webhooks must be public
 	r.Post("/webhook/{id}", h.HandleWebhook)

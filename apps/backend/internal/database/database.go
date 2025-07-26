@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib" // Postgres driver
@@ -71,6 +72,8 @@ func (db *DB) Migrate(ctx context.Context) error {
 		id VARCHAR(255) PRIMARY KEY,
 		user_id VARCHAR(255) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 		forward_url TEXT,
+		name VARCHAR(255),
+		source_type VARCHAR(50),
 		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 	);`
 
@@ -92,6 +95,19 @@ func (db *DB) Migrate(ctx context.Context) error {
 	}
 	if _, err := db.ExecContext(ctx, requestsTable); err != nil {
 		return fmt.Errorf("failed to create requests table: %w", err)
+	}
+
+	// Add missing columns to existing tables if they don't exist
+	addMissingColumns := []string{
+		`ALTER TABLE webhooks ADD COLUMN IF NOT EXISTS user_id VARCHAR(255) NOT NULL DEFAULT 'default_user'`,
+		`ALTER TABLE webhooks ADD COLUMN IF NOT EXISTS name VARCHAR(255)`,
+		`ALTER TABLE webhooks ADD COLUMN IF NOT EXISTS source_type VARCHAR(50)`,
+	}
+
+	for _, query := range addMissingColumns {
+		if _, err := db.ExecContext(ctx, query); err != nil {
+			log.Printf("Warning: failed to add column: %v", err)
+		}
 	}
 
 	log.Println("Database migration completed successfully.")
@@ -119,18 +135,40 @@ func (db *DB) SaveRequest(ctx context.Context, webhookID string, req WebhookRequ
 
 // UpsertUser creates a new user or updates their email if they already exist.
 func (db *DB) UpsertUser(ctx context.Context, id, email string) error {
+	// First, try to insert with the new ID
 	query := `
 	INSERT INTO users (id, email) VALUES ($1, $2)
 	ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email;
 	`
 	_, err := db.ExecContext(ctx, query, id, email)
-	return err
+	if err != nil {
+		// If there's a conflict on email, try to update the existing user
+		if strings.Contains(err.Error(), "users_email_key") {
+			updateQuery := `
+			UPDATE users SET id = $1 WHERE email = $2;
+			`
+			_, updateErr := db.ExecContext(ctx, updateQuery, id, email)
+			if updateErr != nil {
+				return fmt.Errorf("failed to upsert user: %w", updateErr)
+			}
+			return nil
+		}
+		return fmt.Errorf("failed to upsert user: %w", err)
+	}
+	return nil
 }
 
 // CreateWebhook creates or updates a webhook entry for a specific user.
-func (db *DB) CreateWebhook(ctx context.Context, id, userID, forwardURL string) error {
-	query := `INSERT INTO webhooks (id, user_id, forward_url) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET forward_url = EXCLUDED.forward_url;`
-	_, err := db.ExecContext(ctx, query, id, userID, forwardURL)
+func (db *DB) CreateWebhook(ctx context.Context, id, userID, forwardURL, name, sourceType string) error {
+	query := `
+	INSERT INTO webhooks (id, user_id, forward_url, name, source_type) 
+	VALUES ($1, $2, $3, $4, $5) 
+	ON CONFLICT (id) DO UPDATE SET 
+		forward_url = EXCLUDED.forward_url,
+		name = EXCLUDED.name,
+		source_type = EXCLUDED.source_type;
+	`
+	_, err := db.ExecContext(ctx, query, id, userID, forwardURL, name, sourceType)
 	return err
 }
 
@@ -151,7 +189,7 @@ func (db *DB) GetForwardURL(ctx context.Context, webhookID string) (string, erro
 // GetWebhooksForUser retrieves all webhooks for a given user.
 func (db *DB) GetWebhooksForUser(ctx context.Context, userID string) ([]map[string]interface{}, error) {
 	query := `
-	SELECT id, forward_url, created_at
+	SELECT id, user_id, forward_url, name, source_type, created_at
 	FROM webhooks
 	WHERE user_id = $1
 	ORDER BY created_at DESC;
@@ -164,18 +202,24 @@ func (db *DB) GetWebhooksForUser(ctx context.Context, userID string) ([]map[stri
 
 	var webhooks []map[string]interface{}
 	for rows.Next() {
-		var id, forwardURL string
+		var id, dbUserID, forwardURL, name, sourceType string
 		var createdAt time.Time
-		if err := rows.Scan(&id, &forwardURL, &createdAt); err != nil {
+		if err := rows.Scan(&id, &dbUserID, &forwardURL, &name, &sourceType, &createdAt); err != nil {
 			return nil, fmt.Errorf("failed to scan webhook row: %w", err)
 		}
 		webhooks = append(webhooks, map[string]interface{}{
-			"id":          id,
-			"forward_url": forwardURL,
-			"created_at":  createdAt,
+			"id":           id,
+			"user_id":      dbUserID,
+			"forward_url":  forwardURL,
+			"created_at":   createdAt.Format(time.RFC3339),
 		})
 	}
-	return webhooks, rows.Err()
+	
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error during rows iteration: %w", err)
+	}
+	
+	return webhooks, nil
 }
 
 // GetRequests retrieves webhook requests from the database for a given webhook ID.

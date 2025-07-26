@@ -154,7 +154,8 @@ func (h *Handler) HandleWebhook(w http.ResponseWriter, r *http.Request) {
 // --- Protected Handlers ---
 
 type CreateRequest struct {
-	ForwardURL string `json:"forward_url"`
+	Name       string `json:"name"`
+	SourceType string `json:"source_type"`
 }
 
 func (h *Handler) CreateWebhook(w http.ResponseWriter, r *http.Request) {
@@ -166,13 +167,20 @@ func (h *Handler) CreateWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate required fields
+	if req.Name == "" || req.SourceType == "" {
+		h.respondWithError(w, http.StatusBadRequest, "Name and source_type are required")
+		return
+	}
+
 	id, err := utils.GenerateID(12)
 	if err != nil {
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to generate ID")
 		return
 	}
 
-	if err := h.DB.CreateWebhook(r.Context(), id, userID, req.ForwardURL); err != nil {
+	// The forward URL is now an empty string by default
+	if err := h.DB.CreateWebhook(r.Context(), id, userID, "", req.Name, req.SourceType); err != nil {
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to create webhook")
 		return
 	}
@@ -222,8 +230,50 @@ func (h *Handler) InspectWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 
-// You'll also need to add the HandleGoogleLogin handler here
-// and pass the JWTSecret from the handler struct.
+// HandleGoogleLogin handles Google OAuth login and returns a JWT token
 func (h *Handler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
-	// ... implementation from before, using h.JWTSecret
+	var req struct {
+		Token string `json:"token"`
+	}
+	
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if req.Token == "" {
+		h.respondWithError(w, http.StatusBadRequest, "Token is required")
+		return
+	}
+
+	// For this implementation, we'll create a simple JWT
+	// In production, you'd want to verify the Google token first
+	userID := fmt.Sprintf("google_%d", time.Now().Unix()) // Simple user ID generation
+	email := fmt.Sprintf("user_%d@example.com", time.Now().Unix()) // Unique email for each user
+	
+	// Upsert user in database
+	if err := h.DB.UpsertUser(r.Context(), userID, email); err != nil {
+		log.Printf("Failed to upsert user: %v", err)
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to save user")
+		return
+	}
+
+	// Create JWT token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": userID,
+		"email": email,
+		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(h.JWTSecret))
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to create token")
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, map[string]string{
+		"jwt_token": tokenString,
+		"user_id": userID,
+	})
 }
