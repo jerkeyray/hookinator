@@ -32,7 +32,7 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
   const handleCopyUrl = async (url: string) => {
     try {
       await copyToClipboard(url);
-      toast.success("Webhook URL copied to clipboard!");
+      toast.success("Copied to clipboard!");
     } catch (error) {
       toast.error("Failed to copy URL");
     }
@@ -105,83 +105,85 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
             Manage your webhook endpoints and inspect their incoming requests
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-gray-800 hover:bg-transparent">
-                <TableHead className="text-gray-300 font-medium">
-                  Endpoint URL
-                </TableHead>
-                <TableHead className="text-gray-300 font-medium hidden lg:table-cell">
-                  Created
-                </TableHead>
-                <TableHead className="text-gray-300 font-medium text-center hidden sm:table-cell">
-                  Requests
-                </TableHead>
-                <TableHead className="text-gray-300 font-medium text-right">
-                  Actions
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {webhooks.map((hook: Webhook) => (
-                <TableRow
-                  key={hook.id}
-                  className="border-gray-800 hover:bg-transparent"
-                >
-                  <TableCell className="py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0"></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-mono text-sm bg-gray-900 p-3 rounded-lg border border-gray-800 flex items-center justify-between">
-                          <span className="text-gray-200 truncate">
-                            {hook.url}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 ml-2 hover:bg-gray-800 flex-shrink-0"
-                            onClick={() => handleCopyUrl(hook.url)}
-                          >
-                            <Copy className="h-4 w-4 text-gray-400" />
-                          </Button>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-gray-800 hover:bg-transparent">
+                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-left">
+                    Endpoint URL
+                  </TableHead>
+                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-left hidden lg:table-cell">
+                    Created
+                  </TableHead>
+                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-center hidden sm:table-cell">
+                    Requests
+                  </TableHead>
+                  <TableHead className="text-gray-300 font-medium px-4 py-3 text-right">
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {webhooks.map((hook: Webhook) => (
+                  <TableRow
+                    key={hook.id}
+                    className="border-gray-800 hover:bg-transparent"
+                  >
+                    <TableCell className="px-4 py-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-mono text-sm bg-white p-3 rounded-lg border border-gray-200 flex items-center justify-between">
+                            <span className="text-black truncate">
+                              {hook.url}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 hover:bg-gray-100 flex-shrink-0"
+                              onClick={() => handleCopyUrl(hook.url)}
+                            >
+                              <Copy className="h-4 w-4 text-gray-600" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell text-gray-300">
-                    <span className="truncate block">{hook.createdAt}</span>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell text-center">
-                    <div className="flex items-center justify-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          hook.requests > 0
-                            ? "bg-gray-800 text-gray-300 border border-gray-700"
-                            : "bg-gray-900 text-gray-500 border border-gray-800"
-                        }`}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell px-4 py-4 text-gray-300">
+                      <span className="truncate block">{hook.createdAt}</span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell px-4 py-4 text-center">
+                      <div className="flex items-center justify-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            hook.requests > 0
+                              ? "bg-gray-800 text-gray-300 border border-gray-700"
+                              : "bg-gray-900 text-gray-500 border border-gray-800"
+                          }`}
+                        >
+                          {hook.requests}{" "}
+                          {hook.requests === 1 ? "request" : "requests"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-4 text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-700 text-black bg-white"
+                        onClick={() => handleInspect(hook.id)}
                       >
-                        {hook.requests}{" "}
-                        {hook.requests === 1 ? "request" : "requests"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-700 text-black bg-white"
-                      onClick={() => handleInspect(hook.id)}
-                    >
-                      <Activity className="h-4 w-4 mr-2" />
-                      <span className="hidden sm:inline">Inspect</span>
-                      <ArrowRight className="h-4 w-4 sm:ml-2" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                        <Activity className="h-4 w-4 mr-2" />
+                        <span className="hidden sm:inline">Inspect</span>
+                        <ArrowRight className="h-4 w-4 sm:ml-2" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {webhooks.length === 0 && (
             <div className="p-8 text-center">

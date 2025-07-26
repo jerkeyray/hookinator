@@ -1,6 +1,6 @@
 "use client";
-import Sidebar from "@/components/Sidebar";
-import DashboardHeader from "@/components/DashboardHeader";
+import Sidebar from "./components/Sidebar";
+import DashboardHeader from "./components/DashboardHeader";
 import WebhookList, { Webhook } from "@/components/WebhookList";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
@@ -67,6 +67,8 @@ export default function DashboardPage() {
     session?.user?.image ||
     "https://ui-avatars.com/api/?name=U&background=1a1a1a&color=fff&size=36";
 
+  const userName = session?.user?.name || "User";
+
   // --- Route Protection ---
   if (status === "unauthenticated") {
     redirect("/sign-in");
@@ -83,9 +85,9 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen w-full bg-black text-white">
-      <Sidebar />
+      <Sidebar userImage={userImage} userName={userName} />
       <div className="flex flex-col flex-1 min-w-0">
-        <DashboardHeader userImage={userImage} />
+        <DashboardHeader />
         <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 xl:p-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="min-w-0">

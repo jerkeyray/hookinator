@@ -78,7 +78,7 @@ export function CreateWebhookDialog({
           className="bg-white text-black hover:bg-gray-100 border-0"
         >
           <PlusCircle className="h-4 w-4 mr-2" />
-          Create Webhook
+          add new source
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800 z-[9999]">
