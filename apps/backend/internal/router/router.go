@@ -2,6 +2,8 @@ package router
 
 import (
 	"net/http"
+	"os"
+	"strings"
 
 	"hookinator/internal/database"
 	"hookinator/internal/handlers"
@@ -15,9 +17,15 @@ import (
 func New(db *database.DB, baseURL, jwtSecret string) http.Handler {
 	r := chi.NewRouter()
 
+	// Get CORS origins from environment variable
+	corsOrigins := []string{"http://localhost:3000"} // Default for development
+	if corsOrigin := os.Getenv("CORS_ORIGIN"); corsOrigin != "" {
+		corsOrigins = strings.Split(corsOrigin, ",")
+	}
+
 	// Add CORS middleware to allow requests from your frontend
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://hookinator.vercel.app"},
+		AllowedOrigins:   corsOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,

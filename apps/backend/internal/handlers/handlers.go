@@ -10,11 +10,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
+	"google.golang.org/api/oauth2/v2"
+	"google.golang.org/api/option"
 )
 
 // contextKey is a custom type to avoid context key collisions.
@@ -348,10 +351,45 @@ func (h *Handler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For this implementation, we'll create a simple JWT
-	// In production, you'd want to verify the Google token first
-	userID := fmt.Sprintf("google_%d", time.Now().Unix()) // Simple user ID generation
-	email := fmt.Sprintf("user_%d@example.com", time.Now().Unix()) // Unique email for each user
+	// VERIFY the Google token
+	ctx := context.Background()
+	oauth2Service, err := oauth2.NewService(ctx, option.WithHTTPClient(http.DefaultClient))
+	if err != nil {
+		log.Printf("Failed to create OAuth2 service: %v", err)
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to create OAuth2 service")
+		return
+	}
+
+	tokenInfo, err := oauth2Service.Tokeninfo().IdToken(req.Token).Do()
+	if err != nil {
+		log.Printf("Failed to verify Google token: %v", err)
+		h.respondWithError(w, http.StatusUnauthorized, "Invalid Google token")
+		return
+	}
+
+	// Verify the token audience matches your Google Client ID
+	googleClientID := os.Getenv("GOOGLE_CLIENT_ID")
+	if googleClientID == "" {
+		log.Printf("GOOGLE_CLIENT_ID environment variable not set")
+		h.respondWithError(w, http.StatusInternalServerError, "OAuth configuration error")
+		return
+	}
+
+	if tokenInfo.Audience != googleClientID {
+		log.Printf("Invalid token audience: expected %s, got %s", googleClientID, tokenInfo.Audience)
+		h.respondWithError(w, http.StatusUnauthorized, "Invalid token audience")
+		return
+	}
+
+	// Use real user data from Google
+	userID := fmt.Sprintf("google_%s", tokenInfo.UserId)
+	email := tokenInfo.Email
+	
+	if email == "" {
+		log.Printf("No email found in Google token")
+		h.respondWithError(w, http.StatusBadRequest, "Email not provided by Google")
+		return
+	}
 	
 	// Upsert user in database
 	if err := h.DB.UpsertUser(r.Context(), userID, email); err != nil {
@@ -360,22 +398,24 @@ func (h *Handler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create JWT token
+	// Create JWT token with real user data
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": userID,
-		"email": email,
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
-		"iat": time.Now().Unix(),
+		"sub":     userID,
+		"email":   email,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		"iat":     time.Now().Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(h.JWTSecret))
 	if err != nil {
+		log.Printf("Failed to create JWT token: %v", err)
 		h.respondWithError(w, http.StatusInternalServerError, "Failed to create token")
 		return
 	}
 
+	log.Printf("Successfully authenticated user: %s (%s)", email, userID)
 	h.respondWithJSON(w, http.StatusOK, map[string]string{
 		"jwt_token": tokenString,
-		"user_id": userID,
+		"user_id":   userID,
 	})
 }

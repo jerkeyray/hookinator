@@ -37,15 +37,22 @@ func New() (*DB, error) {
 		connStr = databaseURL
 		log.Println("Using DATABASE_URL for connection")
 	} else {
+		// Determine SSL mode based on environment
+		sslMode := "require" // Default for production
+		if os.Getenv("ENVIRONMENT") == "development" || os.Getenv("DB_HOST") == "localhost" {
+			sslMode = "disable"
+		}
+		
 		// Fall back to individual environment variables
-		connStr = fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=require",
-			os.Getenv("DB_USER"),
-			os.Getenv("DB_PASSWORD"),
-			os.Getenv("DB_HOST"),
-			os.Getenv("DB_PORT"),
-			os.Getenv("DB_NAME"),
+		connStr = fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
+			getEnvOrDefault("DB_USER", "postgres"),
+			getEnvOrDefault("DB_PASSWORD", "postgres"),
+			getEnvOrDefault("DB_HOST", "localhost"),
+			getEnvOrDefault("DB_PORT", "5432"),
+			getEnvOrDefault("DB_NAME", "hookinator"),
+			sslMode,
 		)
-		log.Println("Using individual environment variables for connection")
+		log.Printf("Using individual environment variables for connection with sslmode=%s", sslMode)
 	}
 
 	db, err := sql.Open("pgx", connStr)
@@ -67,6 +74,13 @@ func New() (*DB, error) {
 	}
 
 	return nil, fmt.Errorf("failed to connect to database after several attempts: %w", err)
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
 
 // Migrate creates the necessary database tables if they don't exist.
