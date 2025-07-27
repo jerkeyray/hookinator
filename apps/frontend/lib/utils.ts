@@ -20,6 +20,9 @@ export function copyToClipboard(text: string): Promise<void> {
 }
 
 export function generateWebhookUrl(webhookId: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_API_URL environment variable is not set");
+  }
   return `${baseUrl}/webhook/${webhookId}`;
 }
