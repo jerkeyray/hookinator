@@ -1,0 +1,16 @@
+{
+  "functions": {
+    "api/webhook/[id].go": {
+      "runtime": "go1.21"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/webhook/(.*)",
+      "dest": "/api/webhook/[id]"
+    }
+  ],
+  "env": {
+    "GO_VERSION": "1.21"
+  }
+}

@@ -289,7 +289,10 @@ export default function WebhookInspectPage() {
               ) : selectedRequest ? (
                 // Show tabs when a request is selected
                 <div className="px-4 lg:px-6 py-3 lg:py-4 min-h-0 flex-1 flex flex-col">
-                  <Tabs defaultValue="summary" className="w-full flex-1 flex flex-col min-h-0">
+                  <Tabs
+                    defaultValue="summary"
+                    className="w-full flex-1 flex flex-col min-h-0"
+                  >
                     <TabsList className="grid w-full grid-cols-4 bg-gray-900 border border-gray-700 p-1 lg:p-1.5 rounded-lg h-12 lg:h-14 gap-1 flex-shrink-0">
                       <TabsTrigger
                         value="summary"
@@ -317,7 +320,10 @@ export default function WebhookInspectPage() {
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="summary" className="mt-3 lg:mt-4 flex-1 overflow-y-auto min-h-0">
+                    <TabsContent
+                      value="summary"
+                      className="mt-3 lg:mt-4 flex-1 overflow-y-auto min-h-0"
+                    >
                       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                         {/* Request Overview Card */}
                         <Card className="border-blue-500/20 bg-gradient-to-br from-blue-950/20 to-gray-900/40 backdrop-blur-sm shadow-xl min-h-0">
