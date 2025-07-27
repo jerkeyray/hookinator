@@ -1,5 +1,6 @@
 import { GitBranch, Home, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +18,8 @@ export default function Sidebar({
   userImage: string;
   userName: string;
 }) {
+  const pathname = usePathname();
+
   const handleSignOut = async () => {
     try {
       await signOut({ callbackUrl: "/" });
@@ -45,14 +48,22 @@ export default function Sidebar({
           <nav className="space-y-2">
             <Link
               href="/dashboard"
-              className="flex items-center gap-3 rounded-lg bg-gray-900 px-4 py-3 text-white transition-all hover:bg-gray-800"
+              className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+                pathname === "/dashboard"
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-400 hover:bg-gray-900 hover:text-white"
+              }`}
             >
               <Home className="h-5 w-5 flex-shrink-0" />
               <span className="truncate font-medium">Dashboard</span>
             </Link>
             <Link
               href="/settings"
-              className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-400 transition-all hover:bg-gray-900 hover:text-white"
+              className={`flex items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+                pathname === "/settings"
+                  ? "bg-gray-900 text-white"
+                  : "text-gray-400 hover:bg-gray-900 hover:text-white"
+              }`}
             >
               <Settings className="h-5 w-5 flex-shrink-0" />
               <span className="truncate font-medium">Settings</span>

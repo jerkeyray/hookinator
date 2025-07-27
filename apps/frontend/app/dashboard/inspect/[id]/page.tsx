@@ -114,7 +114,7 @@ export default function WebhookInspectPage() {
               variant="ghost"
               size="icon"
               onClick={() => handleCopy(webhookUrl, "Webhook URL copied!")}
-              className="ml-4 text-gray-400 hover:text-gray-200"
+              className="ml-4 text-gray-400 hover:text-gray-300 hover:bg-gray-800/50 transition-colors"
             >
               <Copy className="h-4 w-4" />
             </Button>
