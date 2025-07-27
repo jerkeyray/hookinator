@@ -288,56 +288,56 @@ export default function WebhookInspectPage() {
                 </div>
               ) : selectedRequest ? (
                 // Show tabs when a request is selected
-                <div className="px-6 py-4">
-                  <Tabs defaultValue="summary" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 bg-gray-900 border border-gray-700 p-1.5 rounded-lg h-14 gap-1">
+                <div className="px-4 lg:px-6 py-3 lg:py-4 min-h-0 flex-1 flex flex-col">
+                  <Tabs defaultValue="summary" className="w-full flex-1 flex flex-col min-h-0">
+                    <TabsList className="grid w-full grid-cols-4 bg-gray-900 border border-gray-700 p-1 lg:p-1.5 rounded-lg h-12 lg:h-14 gap-1 flex-shrink-0">
                       <TabsTrigger
                         value="summary"
-                        className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                        className="px-2 lg:px-6 text-xs lg:text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                       >
                         Summary
                       </TabsTrigger>
                       <TabsTrigger
                         value="request"
-                        className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                        className="px-2 lg:px-6 text-xs lg:text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                       >
                         Request
                       </TabsTrigger>
                       <TabsTrigger
                         value="response"
-                        className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                        className="px-2 lg:px-6 text-xs lg:text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                       >
                         Response
                       </TabsTrigger>
                       <TabsTrigger
                         value="destinations"
-                        className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                        className="px-2 lg:px-6 text-xs lg:text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                       >
                         Destinations
                       </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="summary" className="mt-4">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <TabsContent value="summary" className="mt-3 lg:mt-4 flex-1 overflow-y-auto min-h-0">
+                      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                         {/* Request Overview Card */}
-                        <Card className="border-blue-500/20 bg-gradient-to-br from-blue-950/20 to-gray-900/40 backdrop-blur-sm shadow-xl">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-blue-500/20 rounded-lg">
-                                <ArrowLeft className="h-5 w-5 text-blue-400 rotate-180" />
+                        <Card className="border-blue-500/20 bg-gradient-to-br from-blue-950/20 to-gray-900/40 backdrop-blur-sm shadow-xl min-h-0">
+                          <CardHeader className="pb-2 lg:pb-3">
+                            <div className="flex items-center space-x-2 lg:space-x-3">
+                              <div className="p-1.5 lg:p-2 bg-blue-500/20 rounded-lg">
+                                <ArrowLeft className="h-4 w-4 lg:h-5 lg:w-5 text-blue-400 rotate-180" />
                               </div>
                               <div>
-                                <CardTitle className="text-lg font-semibold text-blue-100">
+                                <CardTitle className="text-base lg:text-lg font-semibold text-blue-100">
                                   Request Overview
                                 </CardTitle>
-                                <p className="text-sm text-blue-300/70 mt-1">
+                                <p className="text-xs lg:text-sm text-blue-300/70 mt-1">
                                   Incoming webhook details
                                 </p>
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between py-2.5 px-3 bg-blue-950/30 rounded-lg border border-blue-500/10">
+                          <CardContent className="space-y-2 lg:space-y-3">
+                            <div className="flex items-center justify-between py-2 lg:py-2.5 px-2.5 lg:px-3 bg-blue-950/30 rounded-lg border border-blue-500/10">
                               <div className="flex items-center space-x-3">
                                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                                 <span className="text-blue-200 font-medium">
@@ -419,24 +419,24 @@ export default function WebhookInspectPage() {
                         </Card>
 
                         {/* Response Overview Card */}
-                        <Card className="border-green-500/20 bg-gradient-to-br from-green-950/20 to-gray-900/40 backdrop-blur-sm shadow-xl">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-center space-x-3">
-                              <div className="p-2 bg-green-500/20 rounded-lg">
-                                <CheckCircle className="h-5 w-5 text-green-400" />
+                        <Card className="border-green-500/20 bg-gradient-to-br from-green-950/20 to-gray-900/40 backdrop-blur-sm shadow-xl min-h-0">
+                          <CardHeader className="pb-2 lg:pb-3">
+                            <div className="flex items-center space-x-2 lg:space-x-3">
+                              <div className="p-1.5 lg:p-2 bg-green-500/20 rounded-lg">
+                                <CheckCircle className="h-4 w-4 lg:h-5 lg:w-5 text-green-400" />
                               </div>
                               <div>
-                                <CardTitle className="text-lg font-semibold text-green-100">
+                                <CardTitle className="text-base lg:text-lg font-semibold text-green-100">
                                   Response Overview
                                 </CardTitle>
-                                <p className="text-sm text-green-300/70 mt-1">
+                                <p className="text-xs lg:text-sm text-green-300/70 mt-1">
                                   Server response metrics
                                 </p>
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-3">
-                            <div className="flex items-center justify-between py-2.5 px-3 bg-green-950/30 rounded-lg border border-green-500/10">
+                          <CardContent className="space-y-2 lg:space-y-3">
+                            <div className="flex items-center justify-between py-2 lg:py-2.5 px-2.5 lg:px-3 bg-green-950/30 rounded-lg border border-green-500/10">
                               <div className="flex items-center space-x-3">
                                 <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                                 <span className="text-green-200 font-medium">
@@ -499,24 +499,24 @@ export default function WebhookInspectPage() {
                       </div>
 
                       {/* Key Headers Section */}
-                      <div className="mt-4">
-                        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-950/20 to-gray-900/40">
-                          <CardHeader className="pb-2">
+                      <div className="mt-3 lg:mt-4">
+                        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-950/20 to-gray-900/40 min-h-0">
+                          <CardHeader className="pb-1.5 lg:pb-2">
                             <div className="flex items-center space-x-2">
                               <div className="p-1.5 bg-purple-500/20 rounded-lg">
                                 <AlertCircle className="h-4 w-4 text-purple-400" />
                               </div>
                               <div>
-                                <CardTitle className="text-lg font-semibold text-purple-100">
+                                <CardTitle className="text-base lg:text-lg font-semibold text-purple-100">
                                   Key Headers
                                 </CardTitle>
-                                <p className="text-sm text-purple-300/70">
+                                <p className="text-xs lg:text-sm text-purple-300/70">
                                   Important headers for debugging
                                 </p>
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="space-y-2 pt-0">
+                          <CardContent className="space-y-1.5 lg:space-y-2 pt-0 max-h-48 lg:max-h-64 overflow-y-auto">
                             {selectedRequest.headers &&
                             Object.entries(selectedRequest.headers).length >
                               0 ? (
@@ -551,15 +551,15 @@ export default function WebhookInspectPage() {
                                   return firstTwoHeaders.map(([key, value]) => (
                                     <div
                                       key={key}
-                                      className="flex items-start justify-between py-2 px-3 bg-purple-950/30 rounded border border-purple-500/10"
+                                      className="flex items-start justify-between py-1.5 lg:py-2 px-2 lg:px-2.5 bg-purple-950/30 rounded border border-purple-500/10"
                                     >
-                                      <span className="text-purple-200 font-medium text-sm break-all">
+                                      <span className="text-purple-200 font-medium text-xs lg:text-sm break-all">
                                         {key}:
                                       </span>
-                                      <span className="font-mono text-purple-100 text-sm ml-2 break-all max-w-xs text-right">
+                                      <span className="font-mono text-purple-100 text-xs lg:text-sm ml-2 break-all max-w-xs text-right">
                                         {typeof value === "string" &&
-                                        value.length > 35
-                                          ? `${value.substring(0, 35)}...`
+                                        value.length > 30
+                                          ? `${value.substring(0, 30)}...`
                                           : String(value)}
                                       </span>
                                     </div>
@@ -569,15 +569,15 @@ export default function WebhookInspectPage() {
                                 return foundHeaders.map(([key, value]) => (
                                   <div
                                     key={key}
-                                    className="flex items-start justify-between py-2 px-3 bg-purple-950/30 rounded border border-purple-500/10"
+                                    className="flex items-start justify-between py-1.5 lg:py-2 px-2 lg:px-2.5 bg-purple-950/30 rounded border border-purple-500/10"
                                   >
-                                    <span className="text-purple-200 font-medium text-sm break-all">
+                                    <span className="text-purple-200 font-medium text-xs lg:text-sm break-all">
                                       {key}:
                                     </span>
-                                    <span className="font-mono text-purple-100 text-sm ml-2 break-all max-w-xs text-right">
+                                    <span className="font-mono text-purple-100 text-xs lg:text-sm ml-2 break-all max-w-xs text-right">
                                       {typeof value === "string" &&
-                                      value.length > 35
-                                        ? `${value.substring(0, 35)}...`
+                                      value.length > 30
+                                        ? `${value.substring(0, 30)}...`
                                         : String(value)}
                                     </span>
                                   </div>
