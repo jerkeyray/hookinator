@@ -1,9 +1,20 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy, ArrowRight, Activity, Calendar, Globe } from "lucide-react";
+import {
+  Copy,
+  ArrowRight,
+  Activity,
+  Calendar,
+  Globe,
+  Trash2,
+} from "lucide-react";
 import { copyToClipboard } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { deleteWebhook } from "@/lib/api";
+import { useSession } from "next-auth/react";
+import DeleteWebhookDialog from "./DeleteWebhookDialog";
+import { useState } from "react";
 
 export type Webhook = {
   id: string;
@@ -13,8 +24,24 @@ export type Webhook = {
   requests: number;
 };
 
-export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
+export default function WebhookList({
+  webhooks,
+  onWebhookDeleted,
+}: {
+  webhooks: Webhook[];
+  onWebhookDeleted?: () => void;
+}) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    webhookId: string;
+    webhookName: string;
+  }>({
+    isOpen: false,
+    webhookId: "",
+    webhookName: "",
+  });
 
   const handleCopyUrl = async (url: string) => {
     try {
@@ -27,6 +54,47 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
 
   const handleInspect = (webhookId: string) => {
     router.push(`/dashboard/inspect/${webhookId}`);
+  };
+
+  const handleDeleteClick = (
+    webhookId: string,
+    webhookName: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    setDeleteDialog({
+      isOpen: true,
+      webhookId,
+      webhookName,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!session?.backendToken) {
+      toast.error("Authentication required");
+      return;
+    }
+
+    try {
+      await deleteWebhook(
+        deleteDialog.webhookId,
+        session.backendToken as string
+      );
+      toast.success("Webhook deleted successfully");
+      onWebhookDeleted?.();
+    } catch (error) {
+      toast.error("Failed to delete webhook");
+      console.error("Delete error:", error);
+      throw error; // Re-throw to let the dialog handle the loading state
+    }
+  };
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialog({
+      isOpen: false,
+      webhookId: "",
+      webhookName: "",
+    });
   };
 
   return (
@@ -142,31 +210,50 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
                   </div>
                 </div>
 
-                {/* Copy URL Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-400 hover:text-white hover:bg-gray-800"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCopyUrl(hook.url);
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex items-center space-x-2">
+                  {/* Delete Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-red-400 hover:bg-red-900/20"
+                    onClick={(e) => {
+                      handleDeleteClick(
+                        hook.id,
+                        hook.name || `Webhook ${hook.id.slice(0, 8)}`,
+                        e
+                      );
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
 
-                {/* Inspect Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-400 hover:text-white hover:bg-gray-800"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleInspect(hook.id);
-                  }}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+                  {/* Copy URL Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCopyUrl(hook.url);
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+
+                  {/* Inspect Button */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white hover:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleInspect(hook.id);
+                    }}
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
@@ -184,6 +271,15 @@ export default function WebhookList({ webhooks }: { webhooks: Webhook[] }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteWebhookDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={handleDeleteDialogClose}
+        onConfirm={handleDeleteConfirm}
+        webhookName={deleteDialog.webhookName}
+        webhookId={deleteDialog.webhookId}
+      />
     </div>
   );
 }

@@ -68,6 +68,23 @@ export async function getWebhook(
   return result;
 }
 
+export async function deleteWebhook(
+  webhookId: string,
+  authToken: string
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/webhook/${webhookId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to delete webhook");
+  }
+}
+
 export async function getWebhookRequests(
   webhookId: string,
   authToken: string
@@ -105,22 +122,5 @@ export async function updateWebhook(
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || "Failed to update webhook");
-  }
-}
-
-export async function deleteWebhook(
-  webhookId: string,
-  authToken: string
-): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/webhooks/${webhookId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || "Failed to delete webhook");
   }
 }

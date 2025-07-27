@@ -303,3 +303,23 @@ func (db *DB) CheckWebhookOwnership(ctx context.Context, webhookID, userID strin
 	}
 	return exists, nil
 }
+
+// DeleteWebhook deletes a webhook by ID for a specific user.
+func (db *DB) DeleteWebhook(ctx context.Context, webhookID, userID string) error {
+	query := `DELETE FROM webhooks WHERE id = $1 AND user_id = $2`
+	result, err := db.ExecContext(ctx, query, webhookID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete webhook: %w", err)
+	}
+	
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	
+	if rowsAffected == 0 {
+		return fmt.Errorf("webhook not found or not owned by user")
+	}
+	
+	return nil
+}
