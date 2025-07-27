@@ -221,15 +221,15 @@ export default function WebhookInspectPage() {
           <div className="flex-1 overflow-y-auto">
             {requests.length === 0 ? (
               // Empty state when no requests
-              <div className="flex-1 flex items-center justify-center py-16">
+              <div className="flex-1 flex items-center justify-center">
                 <div className="text-center max-w-md mx-auto px-6">
-                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-8">
+                  <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Zap className="h-8 w-8 text-gray-500" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-4">
+                  <h3 className="text-xl font-semibold text-white mb-3">
                     Waiting for requests
                   </h3>
-                  <p className="text-gray-400 mb-8 leading-relaxed">
+                  <p className="text-gray-400 mb-6 leading-relaxed">
                     Your webhook endpoint is ready to receive requests. Send a
                     test request to the URL above to see it appear here.
                   </p>

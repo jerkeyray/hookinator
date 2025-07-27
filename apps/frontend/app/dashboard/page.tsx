@@ -105,7 +105,7 @@ export default function DashboardPage() {
             </div>
           </div>
           {/* Render webhooks list */}
-          <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
             <WebhookList webhooks={userWebhooks} />
           </div>
         </main>
