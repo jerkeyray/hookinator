@@ -7,14 +7,13 @@ import Sidebar from "../dashboard/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2, User } from "lucide-react";
-import { toast } from "sonner";
 import DeleteAllWebhooksDialog from "@/components/DeleteAllWebhooksDialog";
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
   const [deleteAllDialog, setDeleteAllDialog] = useState(false);
 
-  const userImage = session?.user?.image;
+  const userImage = session?.user?.image || "https://ui-avatars.com/api/?name=U&background=1a1a1a&color=fff&size=36";
 
   const userName = session?.user?.name || "User";
 

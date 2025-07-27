@@ -278,7 +278,6 @@ export default function WebhookList({
         onClose={handleDeleteDialogClose}
         onConfirm={handleDeleteConfirm}
         webhookName={deleteDialog.webhookName}
-        webhookId={deleteDialog.webhookId}
       />
     </div>
   );
