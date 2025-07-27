@@ -4,11 +4,23 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getWebhookRequests, getWebhook } from "@/lib/api";
+import {
+  getWebhookRequests,
+  getWebhook,
+  clearWebhookRequests,
+} from "@/lib/api";
 import { WebhookRequest } from "@/lib/types";
 import { generateWebhookUrl, copyToClipboard } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   ArrowLeft,
   Copy,
@@ -22,6 +34,7 @@ import {
   ExternalLink,
   Globe,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,6 +59,7 @@ export default function WebhookInspectPage() {
   } | null>(null);
   const [destinationDialog, setDestinationDialog] = useState(false);
   const [deleteDestinationDialog, setDeleteDestinationDialog] = useState(false);
+  const [clearRequestsDialog, setClearRequestsDialog] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,6 +110,24 @@ export default function WebhookInspectPage() {
     }
   };
 
+  const handleClearRequests = async () => {
+    if (!session?.backendToken) {
+      toast.error("Authentication required");
+      return;
+    }
+
+    try {
+      await clearWebhookRequests(webhookId, session.backendToken as string);
+      setRequests([]);
+      setSelectedRequest(null);
+      toast.success("All requests cleared successfully");
+      setClearRequestsDialog(false);
+    } catch (error) {
+      console.error("Failed to clear requests:", error);
+      toast.error("Failed to clear requests");
+    }
+  };
+
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
@@ -126,22 +158,35 @@ export default function WebhookInspectPage() {
 
       <div className="flex flex-col flex-1 min-w-0 ml-64 h-full">
         {/* Header - Always shown - Full width */}
-        <div className="px-6 py-4 border-b border-gray-800 flex-shrink-0">
+        <div className="px-4 py-4 border-b border-gray-800 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-semibold text-white">{sourceName}</h1>
+            {requests.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setClearRequestsDialog(true)}
+                className="text-white border-gray-600 bg-black hover:bg-gray-900 hover:text-gray-200 hover:border-gray-500"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear All Requests
+              </Button>
+            )}
           </div>
-          <div className="flex items-center justify-between p-3 bg-gray-900 rounded-md border border-gray-700">
-            <p className="text-sm font-mono text-gray-300 break-all">
-              {webhookUrl}
-            </p>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => handleCopy(webhookUrl, "Webhook URL copied!")}
-              className="ml-4 text-gray-400 hover:text-gray-300 hover:bg-gray-800/50 transition-colors"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+          <div className="p-3 bg-gray-900 rounded-md border border-gray-700">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-mono text-gray-300 break-all flex-1">
+                {webhookUrl}
+              </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleCopy(webhookUrl, "Webhook URL copied!")}
+                className="ml-4 text-gray-400 hover:text-gray-300 hover:bg-gray-800/50 transition-colors flex-shrink-0"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -811,6 +856,37 @@ export default function WebhookInspectPage() {
         forwardUrl={webhook?.forward_url || ""}
         onDestinationDeleted={refreshWebhookData}
       />
+
+      {/* Clear Requests Dialog */}
+      <Dialog open={clearRequestsDialog} onOpenChange={setClearRequestsDialog}>
+        <DialogContent className="sm:max-w-[425px] bg-black text-white border-gray-800">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+              Clear All Requests
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              This will permanently delete all {requests.length} received
+              requests for this webhook. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => setClearRequestsDialog(false)}
+              className="text-gray-300 hover:text-white hover:bg-gray-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleClearRequests}
+              className="bg-red-600 hover:bg-red-700 text-white border-0"
+            >
+              Clear All Requests
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

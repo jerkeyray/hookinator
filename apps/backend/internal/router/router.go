@@ -50,6 +50,7 @@ func New(db *database.DB, baseURL, jwtSecret string) http.Handler {
 		r.Put("/webhook/{id}", h.UpdateWebhook)
 		r.Delete("/webhook/{id}", h.DeleteWebhook)
 		r.Get("/inspect/{id}", h.InspectWebhook)
+		r.Delete("/inspect/{id}/clear", h.ClearWebhookRequests)
 		r.Get("/webhooks", h.ListWebhooks)
 	})
 

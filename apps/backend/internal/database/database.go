@@ -343,3 +343,24 @@ func (db *DB) UpdateWebhook(ctx context.Context, webhookID, userID, forwardURL, 
 	
 	return nil
 }
+
+// ClearWebhookRequests deletes all requests for a specific webhook
+func (db *DB) ClearWebhookRequests(ctx context.Context, webhookID, userID string) error {
+	// First verify ownership
+	isOwner, err := db.CheckWebhookOwnership(ctx, webhookID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to verify ownership: %w", err)
+	}
+	if !isOwner {
+		return fmt.Errorf("user does not own this webhook")
+	}
+
+	// Delete all requests for this webhook
+	query := `DELETE FROM requests WHERE webhook_id = $1`
+	_, err = db.ExecContext(ctx, query, webhookID)
+	if err != nil {
+		return fmt.Errorf("failed to clear webhook requests: %w", err)
+	}
+
+	return nil
+}

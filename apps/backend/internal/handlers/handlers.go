@@ -306,6 +306,31 @@ func (h *Handler) InspectWebhook(w http.ResponseWriter, r *http.Request) {
 	h.respondWithJSON(w, http.StatusOK, events)
 }
 
+func (h *Handler) ClearWebhookRequests(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userContextKey).(string)
+	webhookID := chi.URLParam(r, "id")
+
+	// Verify webhook ownership
+	isOwner, err := h.DB.CheckWebhookOwnership(r.Context(), webhookID, userID)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to verify ownership")
+		return
+	}
+	if !isOwner {
+		h.respondWithError(w, http.StatusForbidden, "You do not have permission to clear this webhook")
+		return
+	}
+
+	// Clear all requests for this webhook
+	err = h.DB.ClearWebhookRequests(r.Context(), webhookID, userID)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to clear webhook requests")
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, map[string]string{"message": "All requests cleared successfully"})
+}
+
 
 // HandleGoogleLogin handles Google OAuth login and returns a JWT token
 func (h *Handler) HandleGoogleLogin(w http.ResponseWriter, r *http.Request) {

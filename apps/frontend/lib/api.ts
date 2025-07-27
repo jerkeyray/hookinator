@@ -124,3 +124,20 @@ export async function updateWebhook(
     throw new Error(errorData.error || "Failed to update webhook");
   }
 }
+
+export async function clearWebhookRequests(
+  webhookId: string,
+  authToken: string
+): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/inspect/${webhookId}/clear`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to clear webhook requests");
+  }
+}
