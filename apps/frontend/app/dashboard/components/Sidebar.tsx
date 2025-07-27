@@ -1,11 +1,4 @@
-import {
-  GitBranch,
-  Home,
-  Settings,
-  LogOut,
-  User,
-  HelpCircle,
-} from "lucide-react";
+import { GitBranch, Home, Settings, LogOut } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +29,7 @@ export default function Sidebar({
     <div className="hidden md:block w-40 lg:w-48 xl:w-56 flex-shrink-0 border-r border-gray-800 bg-black h-full">
       <div className="flex h-full max-h-screen flex-col">
         {/* Header */}
-        <div className="flex h-16 items-center border-b border-gray-800 px-4">
+        <div className="flex h-16 items-center px-4">
           <Link href="/" className="flex items-center gap-3 font-semibold">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
               <GitBranch className="h-5 w-5 text-black" />
@@ -68,12 +61,12 @@ export default function Sidebar({
         </div>
 
         {/* User Profile Section - Fixed at bottom */}
-        <div className="border-t border-gray-800 p-4 mt-auto">
+        <div className="p-4 mt-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 px-3 py-2 hover:bg-gray-900"
+                className="w-full justify-start gap-3 p-3 rounded-lg hover:bg-gray-900 transition-colors"
               >
                 <Image
                   src={userImage}
@@ -93,18 +86,6 @@ export default function Sidebar({
               align="start"
               className="w-56 bg-black border-gray-800 text-white"
             >
-              <DropdownMenuItem className="cursor-pointer hover:!bg-gray-800 gap-2">
-                <User className="h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:!bg-gray-800 gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer hover:!bg-gray-800 gap-2">
-                <HelpCircle className="h-4 w-4" />
-                Support
-              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={(e) => {
                   e.preventDefault();
