@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Globe,
   Trash2,
+  PlusCircle,
   CheckCircle,
   AlertCircle,
 } from "lucide-react";

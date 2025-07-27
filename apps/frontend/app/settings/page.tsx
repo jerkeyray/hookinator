@@ -13,7 +13,7 @@ export default function SettingsPage() {
   const { data: session, status } = useSession();
   const [deleteAllDialog, setDeleteAllDialog] = useState(false);
 
-  const userImage = session?.user?.image || "https://ui-avatars.com/api/?name=U&background=1a1a1a&color=fff&size=36";
+  const userImage = session?.user?.image;
 
   const userName = session?.user?.name || "User";
 

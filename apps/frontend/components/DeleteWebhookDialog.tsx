@@ -19,6 +19,7 @@ interface DeleteWebhookDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   webhookName: string;
+  webhookId: string;
 }
 
 export default function DeleteWebhookDialog({
@@ -26,6 +27,7 @@ export default function DeleteWebhookDialog({
   onClose,
   onConfirm,
   webhookName,
+  webhookId,
 }: DeleteWebhookDialogProps) {
   const [confirmationText, setConfirmationText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
@@ -37,7 +39,7 @@ export default function DeleteWebhookDialog({
     try {
       await onConfirm();
       handleClose();
-    } catch {
+    } catch (error) {
       // Error handling is done in the parent component
     } finally {
       setIsDeleting(false);
