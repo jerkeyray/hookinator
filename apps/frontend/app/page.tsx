@@ -64,7 +64,7 @@ export default function HookinatorLandingPage() {
                 <Button
                   variant="default"
                   size="sm"
-                  className="bg-white text-black hover:bg-gray-200 font-bold px-3 py-2 rounded-md"
+                  className="bg-white text-black hover:bg-gray-200 font-bold px-4 py-3 h-10 rounded-md"
                 >
                   <div className="flex items-center gap-2">
                     {session.user?.image ? (
@@ -112,7 +112,7 @@ export default function HookinatorLandingPage() {
           ) : (
             <Button
               variant="default"
-              className="bg-white text-black hover:bg-gray-200 font-bold sm:font-extrabold"
+              className="bg-white text-black hover:bg-gray-200 font-bold sm:font-extrabold px-4 py-5 h-10"
               onClick={handleSignInClick}
             >
               Sign In
@@ -172,10 +172,10 @@ export default function HookinatorLandingPage() {
   "api_version": "2024-06-20",
   "data": {
     "object": {
-      "id": "cus_ABCDEFGHIJKLMN",
+      "id": "hehehehehe",
       "object": "customer",
-      "email": "jenny.rosen@example.com",
-      "name": "Jenny Rosen"
+      "email": "read.climber@example.com",
+      "name": "Kato Buntaro"
     }
   },
   "livemode": false,
@@ -233,7 +233,7 @@ export default function HookinatorLandingPage() {
             <div className="mt-6">
               <Button
                 size="lg"
-                className="bg-white text-black font-bold text-lg px-8 py-4 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
+                className="bg-white text-black font-bold text-lg px-8 py-6 rounded-lg shadow-md hover:scale-105 hover:bg-gray-200 transition-transform duration-150"
                 onClick={handleGetStartedClick}
               >
                 {session ? "Go to Dashboard" : "Get Started for Free"}
