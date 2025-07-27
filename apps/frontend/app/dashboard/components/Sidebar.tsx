@@ -33,7 +33,7 @@ export default function Sidebar({
   };
 
   return (
-    <div className="hidden md:block w-40 lg:w-48 xl:w-56 flex-shrink-0 border-r border-gray-800 bg-black">
+    <div className="hidden md:block w-40 lg:w-48 xl:w-56 flex-shrink-0 border-r border-gray-800 bg-black h-full">
       <div className="flex h-full max-h-screen flex-col">
         {/* Header */}
         <div className="flex h-16 items-center border-b border-gray-800 px-4">
@@ -67,8 +67,8 @@ export default function Sidebar({
           </nav>
         </div>
 
-        {/* User Profile Section */}
-        <div className="border-t border-gray-800 p-4">
+        {/* User Profile Section - Fixed at bottom */}
+        <div className="border-t border-gray-800 p-4 mt-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

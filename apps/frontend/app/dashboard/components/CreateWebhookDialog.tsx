@@ -93,18 +93,12 @@ export function CreateWebhookDialog({
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="space-y-2">
-              <Label
-                htmlFor="name"
-                className="text-sm font-medium text-gray-300"
-              >
-                Endpoint Name
-              </Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-gray-500"
-                placeholder="My Awesome Endpoint"
+                placeholder="endpoint name"
               />
             </div>
           </div>
