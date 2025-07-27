@@ -17,7 +17,7 @@ func New(db *database.DB, baseURL, jwtSecret string) http.Handler {
 
 	// Add CORS middleware to allow requests from your frontend
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "https://your-production-domain.com"},
+		AllowedOrigins:   []string{"http://localhost:3000", "https://hookinator.vercel.app"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
 		AllowCredentials: true,
