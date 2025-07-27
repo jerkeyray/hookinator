@@ -1,6 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-
 export default function EmptyState() {
   return (
     <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm bg-gray-900/20">

@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 import Sidebar from "../dashboard/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,9 @@ export default function SettingsPage() {
   const { data: session, status } = useSession();
   const [deleteAllDialog, setDeleteAllDialog] = useState(false);
 
-  const userImage = session?.user?.image;
+  const userImage =
+    session?.user?.image ||
+    "https://ui-avatars.com/api/?name=U&background=1a1a1a&color=fff&size=36";
 
   const userName = session?.user?.name || "User";
 
@@ -63,9 +66,11 @@ export default function SettingsPage() {
                 <CardContent>
                   <div className="flex items-center space-x-4">
                     {userImage ? (
-                      <img
+                      <Image
                         src={userImage}
                         alt={userName}
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-full border-2 border-gray-700"
                       />
                     ) : (
