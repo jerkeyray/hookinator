@@ -19,11 +19,16 @@ import {
   Circle,
   Zap,
   PlusCircle,
+  ExternalLink,
+  Globe,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Sidebar from "../../components/Sidebar";
 import { Badge } from "@/components/ui/badge";
+import DestinationDialog from "@/components/DestinationDialog";
+import DeleteDestinationDialog from "@/components/DeleteDestinationDialog";
 
 export default function WebhookInspectPage() {
   const { data: session, status } = useSession();
@@ -35,7 +40,12 @@ export default function WebhookInspectPage() {
   const [selectedRequest, setSelectedRequest] = useState<WebhookRequest | null>(
     null
   );
-  const [webhook, setWebhook] = useState<{ name: string } | null>(null);
+  const [webhook, setWebhook] = useState<{
+    name: string;
+    forward_url?: string;
+  } | null>(null);
+  const [destinationDialog, setDestinationDialog] = useState(false);
+  const [deleteDestinationDialog, setDeleteDestinationDialog] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +80,20 @@ export default function WebhookInspectPage() {
     copyToClipboard(text)
       .then(() => toast.success(message))
       .catch(() => toast.error("Failed to copy"));
+  };
+
+  const refreshWebhookData = async () => {
+    if (status === "authenticated" && session?.backendToken) {
+      try {
+        const webhookData = await getWebhook(
+          webhookId,
+          session.backendToken as string
+        );
+        setWebhook(webhookData);
+      } catch (error) {
+        console.error("Failed to refresh webhook data:", error);
+      }
+    }
   };
 
   if (status === "loading" || loading) {
@@ -531,22 +555,70 @@ export default function WebhookInspectPage() {
                     </TabsContent>
 
                     <TabsContent value="destinations" className="mt-6">
-                      <div className="text-center py-12 bg-gray-900 rounded-lg border border-dashed border-gray-700">
-                        <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Zap className="h-6 w-6 text-gray-500" />
+                      {webhook?.forward_url ? (
+                        // Active destination
+                        <div className="space-y-6">
+                          <Card className="border-green-500/20 bg-green-950/10">
+                            <CardHeader>
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg font-semibold text-green-100 flex items-center gap-2">
+                                  <CheckCircle className="h-5 w-5 text-green-400" />
+                                  Active Destination
+                                </CardTitle>
+                                <Badge className="bg-green-500/20 text-green-300 border-green-500/30">
+                                  Active
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                <div className="flex items-center space-x-2">
+                                  <ExternalLink className="h-4 w-4 text-green-400" />
+                                  <span className="text-sm font-mono text-green-200 break-all">
+                                    {webhook.forward_url}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-green-300/70">
+                                  All incoming webhook requests are being
+                                  forwarded to this URL
+                                </p>
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() =>
+                                      setDeleteDestinationDialog(true)
+                                    }
+                                    className="bg-black border border-red-600 text-red-400 hover:bg-red-600 hover:text-white"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete Destination
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         </div>
-                        <h3 className="text-lg font-medium text-white mb-2">
-                          Forward Your Webhooks
-                        </h3>
-                        <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
-                          Destinations allow you to process and route incoming
-                          requests to your own services or third-party APIs.
-                        </p>
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Create Destination
-                        </Button>
-                      </div>
+                      ) : (
+                        // No destination
+                        <div className="text-center py-12 bg-gray-900 rounded-lg border border-dashed border-gray-700">
+                          <div className="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Zap className="h-6 w-6 text-gray-500" />
+                          </div>
+                          <h3 className="text-lg font-medium text-white mb-2">
+                            Forward Your Webhooks
+                          </h3>
+                          <p className="text-sm text-gray-400 mb-6 max-w-md mx-auto">
+                            Destinations allow you to process and route incoming
+                            requests to your own services or third-party APIs.
+                          </p>
+                          <Button
+                            onClick={() => setDestinationDialog(true)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <PlusCircle className="h-4 w-4 mr-2" />
+                            Create Destination
+                          </Button>
+                        </div>
+                      )}
                     </TabsContent>
 
                     <TabsContent value="response" className="mt-6">
@@ -646,6 +718,26 @@ export default function WebhookInspectPage() {
           </main>
         </div>
       </div>
+
+      {/* Destination Dialog */}
+      <DestinationDialog
+        isOpen={destinationDialog}
+        onClose={() => setDestinationDialog(false)}
+        webhookId={webhookId}
+        webhookName={webhook?.name || "Webhook"}
+        currentForwardUrl={webhook?.forward_url}
+        onDestinationUpdated={refreshWebhookData}
+      />
+
+      {/* Delete Destination Dialog */}
+      <DeleteDestinationDialog
+        isOpen={deleteDestinationDialog}
+        onClose={() => setDeleteDestinationDialog(false)}
+        webhookId={webhookId}
+        webhookName={webhook?.name || "Webhook"}
+        forwardUrl={webhook?.forward_url || ""}
+        onDestinationDeleted={refreshWebhookData}
+      />
     </div>
   );
 }

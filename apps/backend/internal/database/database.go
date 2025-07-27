@@ -323,3 +323,23 @@ func (db *DB) DeleteWebhook(ctx context.Context, webhookID, userID string) error
 	
 	return nil
 }
+
+// UpdateWebhook updates a webhook's forward URL and name for a specific user.
+func (db *DB) UpdateWebhook(ctx context.Context, webhookID, userID, forwardURL, name string) error {
+	query := `UPDATE webhooks SET forward_url = $1, name = $2 WHERE id = $3 AND user_id = $4`
+	result, err := db.ExecContext(ctx, query, forwardURL, name, webhookID, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update webhook: %w", err)
+	}
+	
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	
+	if rowsAffected == 0 {
+		return fmt.Errorf("webhook not found or not owned by user")
+	}
+	
+	return nil
+}

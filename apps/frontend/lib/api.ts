@@ -110,7 +110,7 @@ export async function updateWebhook(
   updates: { name?: string; forward_url?: string },
   authToken: string
 ): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/webhooks/${webhookId}`, {
+  const response = await fetch(`${API_BASE_URL}/webhook/${webhookId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

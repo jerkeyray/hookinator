@@ -246,6 +246,41 @@ func (h *Handler) DeleteWebhook(w http.ResponseWriter, r *http.Request) {
 	h.respondWithJSON(w, http.StatusOK, map[string]string{"message": "Webhook deleted successfully"})
 }
 
+func (h *Handler) UpdateWebhook(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userContextKey).(string)
+	webhookID := chi.URLParam(r, "id")
+
+	// Check if webhook exists and belongs to user
+	exists, err := h.DB.CheckWebhookOwnership(r.Context(), webhookID, userID)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to verify webhook ownership")
+		return
+	}
+	if !exists {
+		h.respondWithError(w, http.StatusNotFound, "Webhook not found")
+		return
+	}
+
+	var req struct {
+		ForwardURL string `json:"forward_url"`
+		Name       string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.respondWithError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	// Update the webhook
+	err = h.DB.UpdateWebhook(r.Context(), webhookID, userID, req.ForwardURL, req.Name)
+	if err != nil {
+		h.respondWithError(w, http.StatusInternalServerError, "Failed to update webhook")
+		return
+	}
+
+	h.respondWithJSON(w, http.StatusOK, map[string]string{"message": "Webhook updated successfully"})
+}
+
 func (h *Handler) InspectWebhook(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(userContextKey).(string)
 	webhookID := chi.URLParam(r, "id")
