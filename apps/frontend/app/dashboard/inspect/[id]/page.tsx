@@ -136,10 +136,10 @@ export default function WebhookInspectPage() {
                         : "text-gray-400";
 
                 const isSelected = selectedRequest === request;
-                const requestItemClass = `px-4 py-3 border-b border-gray-800 cursor-pointer hover:bg-gray-900/70 transition-colors flex flex-col ${
+                const requestItemClass = `p-4 border-b border-gray-800 cursor-pointer hover:bg-gray-900/70 transition-colors flex flex-col ${
                   isSelected
-                    ? "bg-blue-600/10 border-l-2 border-l-blue-500"
-                    : "border-l-2 border-transparent"
+                    ? "bg-blue-600/10 border-l-4 border-l-blue-500"
+                    : "border-l-4 border-transparent"
                 }`;
 
                 return (
@@ -149,7 +149,7 @@ export default function WebhookInspectPage() {
                     onClick={() => setSelectedRequest(request)}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2.5">
+                      <div className="flex items-center space-x-3">
                         <StatusIcon
                           className={`h-4 w-4 shrink-0 ${statusColor}`}
                         />
@@ -165,7 +165,7 @@ export default function WebhookInspectPage() {
                         })}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 ml-[26px] truncate">
+                    <div className="text-xs text-gray-500 mt-2 pl-7 truncate">
                       ID: {`req_${index.toString().padStart(4, "0")}`}
                     </div>
                   </div>
@@ -247,36 +247,30 @@ export default function WebhookInspectPage() {
               // Show tabs when a request is selected
               <div className="px-6 py-4">
                 <Tabs defaultValue="summary" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 bg-gray-900 border border-gray-700 p-1.5 rounded-lg h-14">
+                  <TabsList className="grid w-full grid-cols-4 bg-gray-900 border border-gray-700 p-1.5 rounded-lg h-14 gap-1">
                     <TabsTrigger
                       value="summary"
-                      className="px-6 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                      className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                     >
                       Summary
                     </TabsTrigger>
                     <TabsTrigger
                       value="request"
-                      className="px-6 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                      className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                     >
                       Request
                     </TabsTrigger>
                     <TabsTrigger
                       value="response"
-                      className="px-6 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                      className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                     >
                       Response
                     </TabsTrigger>
                     <TabsTrigger
                       value="destinations"
-                      className="px-6 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
+                      className="px-6 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
                     >
                       Destinations
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="workflow"
-                      className="px-6 py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-900 data-[state=active]:text-white text-gray-300 hover:text-white hover:bg-gray-800 rounded-md data-[state=active]:border data-[state=active]:border-blue-700"
-                    >
-                      Workflow
                     </TabsTrigger>
                   </TabsList>
 
@@ -480,12 +474,12 @@ export default function WebhookInspectPage() {
                   </TabsContent>
 
                   <TabsContent value="request" className="mt-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="max-w-4xl">
                       {/* Request Card */}
                       <Card className="border-blue-600/30 bg-blue-600/10">
                         <CardHeader className="flex flex-row items-center justify-between pb-3">
                           <CardTitle className="text-blue-400 text-sm font-medium">
-                            REQUEST
+                            REQUEST DETAILS
                           </CardTitle>
                           <Button
                             variant="ghost"
@@ -513,52 +507,45 @@ export default function WebhookInspectPage() {
                           <div className="text-white text-sm font-mono">
                             {new URL(webhookUrl).pathname}
                           </div>
-                          <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
-                            <pre className="text-xs text-white whitespace-pre-wrap">
-                              {selectedRequest.body ? (
-                                selectedRequest.body
-                              ) : (
-                                <span className="text-gray-400 italic">
-                                  No content
-                                </span>
-                              )}
-                            </pre>
-                          </div>
-                        </CardContent>
-                      </Card>
 
-                      {/* Response Card */}
-                      <Card className="border-green-600/30 bg-green-600/10">
-                        <CardHeader className="flex flex-row items-center justify-between pb-3">
-                          <CardTitle className="text-green-400 text-sm font-medium">
-                            RESPONSE
-                          </CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleCopy(
-                                JSON.stringify(
-                                  { status: "200 OK", body: "No content" },
-                                  null,
-                                  2
-                                ),
-                                "Response data copied!"
-                              )
-                            }
-                            className="text-green-400 hover:text-green-300 hover:bg-green-600/20"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="text-2xl font-bold text-black bg-green-400 px-3 py-1 rounded inline-block">
-                            200 OK
+                          {/* Headers Section */}
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-blue-300">
+                              Headers
+                            </h4>
+                            <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                              <pre className="text-xs text-white whitespace-pre-wrap">
+                                {selectedRequest.headers ? (
+                                  JSON.stringify(
+                                    selectedRequest.headers,
+                                    null,
+                                    2
+                                  )
+                                ) : (
+                                  <span className="text-gray-400 italic">
+                                    No headers
+                                  </span>
+                                )}
+                              </pre>
+                            </div>
                           </div>
-                          <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
-                            <pre className="text-xs text-gray-400 italic">
-                              No content
-                            </pre>
+
+                          {/* Body Section */}
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-blue-300">
+                              Body
+                            </h4>
+                            <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                              <pre className="text-xs text-white whitespace-pre-wrap">
+                                {selectedRequest.body ? (
+                                  selectedRequest.body
+                                ) : (
+                                  <span className="text-gray-400 italic">
+                                    No content
+                                  </span>
+                                )}
+                              </pre>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -585,13 +572,86 @@ export default function WebhookInspectPage() {
                   </TabsContent>
 
                   <TabsContent value="response" className="mt-6">
-                    <div className="text-center py-8 text-gray-500">
-                      Response details are not yet available.
-                    </div>
-                  </TabsContent>
-                  <TabsContent value="workflow" className="mt-6">
-                    <div className="text-center py-8 text-gray-500">
-                      Workflow configuration is not yet available.
+                    <div className="max-w-4xl">
+                      {/* Response Card */}
+                      <Card className="border-green-600/30 bg-green-600/10">
+                        <CardHeader className="flex flex-row items-center justify-between pb-3">
+                          <CardTitle className="text-green-400 text-sm font-medium">
+                            RESPONSE DETAILS
+                          </CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleCopy(
+                                JSON.stringify(
+                                  { status: "200 OK", body: "No content" },
+                                  null,
+                                  2
+                                ),
+                                "Response data copied!"
+                              )
+                            }
+                            className="text-green-400 hover:text-green-300 hover:bg-green-600/20"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {/* Status Code */}
+                          <div className="flex items-center space-x-3">
+                            <span className="text-green-200 font-medium">
+                              Status:
+                            </span>
+                            <div className="text-2xl font-bold text-black bg-green-400 px-3 py-1 rounded inline-block">
+                              200 OK
+                            </div>
+                          </div>
+
+                          {/* Response Headers */}
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-green-300">
+                              Response Headers
+                            </h4>
+                            <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                              <pre className="text-xs text-white whitespace-pre-wrap">
+                                {JSON.stringify(
+                                  {
+                                    "Content-Type": "application/json",
+                                    Server: "Hookinator/1.0",
+                                    Date: new Date().toUTCString(),
+                                    "Content-Length": "0",
+                                  },
+                                  null,
+                                  2
+                                )}
+                              </pre>
+                            </div>
+                          </div>
+
+                          {/* Response Body */}
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-medium text-green-300">
+                              Response Body
+                            </h4>
+                            <div className="bg-gray-800 p-4 rounded-md border border-gray-700">
+                              <pre className="text-xs text-gray-400 italic">
+                                No content
+                              </pre>
+                            </div>
+                          </div>
+
+                          {/* Response Time */}
+                          <div className="flex items-center space-x-3">
+                            <span className="text-green-200 font-medium">
+                              Response Time:
+                            </span>
+                            <span className="font-mono text-white font-semibold">
+                              50ms
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </TabsContent>
                 </Tabs>
