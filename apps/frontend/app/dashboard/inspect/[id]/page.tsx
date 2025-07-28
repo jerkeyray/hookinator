@@ -131,7 +131,12 @@ export default function WebhookInspectPage() {
   if (status === "loading" || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p>Loading Inspector...</p>
+        <div className="text-center">
+          <div className="relative">
+            {/* Spinning loader */}
+            <div className="w-16 h-16 border-4 border-gray-700 border-t-blue-500 rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
       </div>
     );
   }
