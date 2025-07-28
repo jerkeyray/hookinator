@@ -84,9 +84,9 @@ export default function Sidebar({
                   width={32}
                   height={32}
                   alt="User Avatar"
-                  className="rounded-full"
+                  className="rounded-full flex-shrink-0"
                 />
-                <div className="flex-1 text-left">
+                <div className="flex-1 text-left min-w-0 pr-2">
                   <p className="text-sm font-medium text-white truncate">
                     {userName}
                   </p>

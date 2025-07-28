@@ -129,7 +129,7 @@ export default function HookinatorLandingPage() {
           <div className="container flex flex-col items-center px-4 md:px-6">
             <div className="max-w-3xl mx-auto space-y-4">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl text-transparent bg-clip-text bg-gradient-to-r from-gray-50 to-gray-400">
-                The Ultimate Webhook Toolkit for Developers
+                Webhook Toolkit for Developers
               </h1>
               <p className="text-lg text-gray-400 md:text-xl">
                 Capture, inspect, and debug webhooks in real-time. Get a unique
@@ -196,8 +196,7 @@ export default function HookinatorLandingPage() {
                 <Terminal className="h-10 w-10 mb-2" />
                 <h3 className="text-xl font-bold">Instant URL</h3>
                 <p className="text-gray-400">
-                  Generate a unique endpoint instantly. No sign-up required to
-                  start inspecting your webhook payloads.
+                  Generate a unique endpoint instantly. Start inspecting your webhook payloads.
                 </p>
               </div>
               <div className="flex flex-col items-center text-center gap-2">
